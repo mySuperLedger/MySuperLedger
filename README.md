@@ -13,7 +13,7 @@ The accounting capability will be crucial to the success of SMEs that rely on th
 don't have sufficient resources to develop their own accounting software, and existing ones are feature-rich but don't meet
 these non-functional requirements, e.g., high traffic volume, 7x24 available, zero data loss.
 
-## Who am I and Why I can do this
+## Who am I and why I can do this
 I am a seasoned developer in the financial industry for over 13 years, dealing with critical finance data most of my career.
 I designed and led the development the financial accounting system for eBay management payment. The system can now handle 1 million transactions
 per second and can easily scale out to support even larger volume. It is also high available, 99.999% available in over two years, 
