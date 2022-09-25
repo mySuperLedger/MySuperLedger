@@ -1,18 +1,21 @@
-# What is MySuperLedger
+# MySuperLedger
+
+## What is MySuperLedger
 MySuperLedger is a database specifically designed for accounting purpose. You can use it to create accounts, create ledgers, 
 do double-entry bookkeeping. Its goal is to equip SMEs with the capability to handle super large accounting volume 
 which usually internet giants such as Alipay, WeChat Pay, PayPal have.
 
-## Why SMEs will need to handle large accounting volume that big companies have
+## Why SMEs will need MySuperLedger
 The main reason is I believe the pay-as-you-go payment model will lead to a burst of bookkeeping activities which can easily
 reach the same magnitude of traffic and high-availability requirement that only internet giants have.
 
 The accounting capability will be crucial to the success of SMEs that rely on the pay-as-you-go model. However, they usually 
 don't have sufficient resources to develop their own accounting software, and existing ones are feature-rich but don't meet
-these non-functional requirements, i.e., high traffic volume, 7x24 available, zero data loss, 100% auditable.
+these non-functional requirements, e.g., high traffic volume, 7x24 available, zero data loss.
 
-## Why I can do this
-I designed and led the development of the financial accounting system for eBay management payment. The system can handle 1 million transactions
+## Who am I and Why I can do this
+I am a seasoned developer in the financial industry for over 13 years, dealing with critical finance data most of my career.
+I designed and led the development the financial accounting system for eBay management payment. The system can now handle 1 million transactions
 per second and can easily scale out to support even larger volume. It is also high available, 99.999% available in over two years, 
 that's 7-minutes downtime, it could get more 9s if that mis-operation didn't happen. Thirdly, the system can guarantee no data loss, which is
 also a must-have requirement on financial accounting system. Last but not least, it's 100% audit-able, it will not only tell you the 
