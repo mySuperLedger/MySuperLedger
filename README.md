@@ -3,7 +3,7 @@ MySuperLedger aims to enable SMEs with accounting capability that internet giant
 
 ## Why SMEs need accounting feature that big companies have
 The main reason is I believe the pay-as-you-go payment model will lead to a burst of bookkeeping activities which can easily
-reach the same level of traffic and high-availability requirement that only internet giants have.
+reach the same magnitude of traffic and high-availability requirement that only internet giants have.
 
 The accounting capability will be crucial to the success of SMEs that rely on the pay-as-you-go model. However they usually 
 don't have sufficient resources to develop their own accounting software, and existing accounting softwares 
@@ -31,7 +31,7 @@ I'm going to provide following features:
 Stay tuned.
 
 ## How to connect
-Feel free to send a message from all below channels. we'd love to discuss your use scenarios and what we can help on that.
-1. telegram: @jiaqifudan
-2. discord: jackyjia
+Feel free to send a message from all below channels. I'd love to discuss your use scenarios and what I can help on that.
+1. telegram: t.me/MySuperLedger
+2. discord: #MySuperLedger
 
