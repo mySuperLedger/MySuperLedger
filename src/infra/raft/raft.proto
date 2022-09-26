@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package gringofts.raft;
+
+// The Raft service definition.
+service Raft {
+    rpc RequestVoteV2 (RequestVote.Request)     returns (RequestVote.Response) {}
+    rpc AppendEntriesV2 (AppendEntries.Request) returns (AppendEntries.Response) {}
+}
+
+message VersionInfo {
+    uint64 secret_key_version = 1;
+}
+
+message SpecialTag {
+    uint64 identifier = 1;
+    bytes payload = 2;
+}
+
+message LogEntry {
+    uint64 term = 1; // term of this entry
+    uint64 index = 2; // index of this entry, can be a virtual index, different from physical file index due to log rotation, etc.
+    bool noop = 3; // the first entry when a new leader will send to all followers
+    uint64 checksum = 4; // checksum of the payload
+    bytes payload = 5; // one payload may contain multiple content, e.g., commands, events
+    VersionInfo version = 6;
+    SpecialTag specialTag = 7;
+}
+
+message RequestVote {
+    message Request {
+        uint64 term                 = 1;
+        uint64 candidate_id         = 2;
+        uint64 last_log_index       = 3;
+        uint64 last_log_term        = 4;
+
+        // metrics
+        uint64 create_time_in_nano  = 5;
+    }
+
+    message Response {
+        uint64 term                 = 1;
+        bool vote_granted           = 2;
+
+        uint64 id                   = 3;
+
+        /**
+         * Help sender identify stale RV_resp
+         */
+        uint64 saved_term           = 4;
+
+        // metrics
+        uint64 create_time_in_nano  = 5;
+    }
+}
+
+message AppendEntries {
+    message Request {
+        uint64 term                 = 1;
+        uint64 leader_id            = 2;
+        uint64 prev_log_index       = 3;
+        uint64 prev_log_term        = 4;
+        repeated LogEntry entries   = 5;
+        uint64 commit_index         = 6;
+
+        // metrics
+        Metrics metrics             = 7;
+    }
+
+    message Response {
+        uint64 term                 = 1;
+        bool success                = 2;
+
+        uint64 id                   = 3;
+
+        /**
+         * Help sender identify stale/duplicate AE_resp
+         */
+        uint64 saved_term           = 4;
+        uint64 saved_prev_log_index = 5;
+
+        /**
+         * The recipient's last log index (after it's applied this RPC's
+         * changes to the log). This is used to speed up finding the correct
+         * value for nextIndex with a follower that is far behind the leader.
+         */
+        uint64 last_log_index       = 6;
+
+        /**
+         * The recipient's latest match index (after it's applied this RPC's
+         * changes to the log).
+         */
+        uint64 match_index          = 7;
+
+        // metrics
+        Metrics metrics             = 8;
+    }
+
+    // all timestamps are in nano
+    message Metrics {
+        uint64 term                         = 1;
+        uint64 leader_id                    = 2;
+        uint64 follower_id                  = 3;
+
+        // Leader
+        uint64 request_create_time          = 4;
+        uint64 entries_reading_done_time    = 5;
+        uint64 entries_count                = 6;
+        uint64 request_send_time            = 7;
+
+        // Follower
+        uint64 request_event_enqueue_time   = 8;
+        uint64 request_event_dequeue_time   = 9;
+
+        uint64 response_create_time         = 10;
+        uint64 entries_writing_done_time    = 11;
+        uint64 response_send_time           = 12;
+
+        // Leader
+        uint64 response_event_enqueue_time  = 13;
+        uint64 response_event_dequeue_time  = 14;
+    }
+}

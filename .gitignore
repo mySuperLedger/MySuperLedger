@@ -1,35 +1,64 @@
-# Prerequisites
-*.d
+# IDE related #
+###############
+.idea/
+compile_commands.json
+.vscode
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Compile related #
+###################
+build/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+CMakeFiles/
+*.cbp
+CodeCoverage.cmake
 
-# Precompiled Headers
-*.gch
-*.pch
+# doc related #
+###############
+docs/doxygen/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# auto-gen code #
+#################
+src/app_demo/generated
+src/app_util/generated
+src/infra/es/store/generated
+src/infra/raft/generated
 
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
+# Test-related #
+################
+code_coverage/
+gringofts_test_coverage_lcov/
+gringofts_test_coverage_lcov.*
+*cobertura.xml
+code_coverage.*
+test/target/
 *.out
-*.app
+test.db
+test/**/node/*
+*.cov
+node_*
 
-# IDE
-.idea
+# SonarQube #
+#############
+build_wrapper
+.scannerwork
+
+# SQLite db files #
+###################
+src/**/*.db
+sqlite
+
+# Core files #
+##############
+core
+
+# submodules
+################
+third_party
+.gitmodules
+
+# tags
+################
+tags
+**/tags
