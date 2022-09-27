@@ -68,7 +68,7 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   void loadFromRocksDB();
 
   /// the max num of bundles batched in write batch
-  const uint64_t mMaxBatchSize = 5;
+  const uint64_t mMaxBatchSize = 500;
 
   std::shared_ptr<rocksdb::DB> mRocksDB;
   rocksdb::WriteBatch mWriteBatch;

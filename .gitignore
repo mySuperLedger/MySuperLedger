@@ -12,6 +12,7 @@ CMakeCache.txt
 Makefile
 CMakeFiles/
 *.cbp
+.cmake
 CodeCoverage.cmake
 
 # doc related #
@@ -38,6 +39,7 @@ test.db
 test/**/node/*
 *.cov
 node_*
+Testing
 
 # SonarQube #
 #############

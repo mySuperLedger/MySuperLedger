@@ -32,7 +32,6 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
    * implement getter() and setter()
    */
   void setValue(uint64_t value) override {
-    assert(mValue + 1 == value);
     SPDLOG_INFO("set value from {} to {}", mValue, value);
 
     mValue = value;
