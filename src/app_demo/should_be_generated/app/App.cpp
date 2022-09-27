@@ -14,12 +14,8 @@ limitations under the License.
 
 #include "App.h"
 
-#include "../../../infra/es/store/DefaultCommandEventStore.h"
 #include "../../../infra/es/store/RaftCommandEventStore.h"
-#include "../../../infra/es/store/ReadonlyDefaultCommandEventStore.h"
 #include "../../../infra/es/store/ReadonlyRaftCommandEventStore.h"
-#include "../../../infra/es/store/ReadonlySQLiteCommandEventStore.h"
-#include "../../../infra/es/store/SQLiteCommandEventStore.h"
 #include "../../../infra/monitor/Monitorable.h"
 #include "../../../infra/raft/RaftBuilder.h"
 #include "../../../infra/raft/metrics/RaftMonitorAdaptor.h"
@@ -85,14 +81,8 @@ App::~App() {
 
 void App::initDeploymentMode(const INIReader &reader) {
   std::string mode = reader.Get("app", "deployment.mode", "standalone");
-  if (mode == "standalone") {
-    mDeploymentMode = DeploymentMode::Standalone;
-  } else if (mode == "distributed") {
-    mDeploymentMode = DeploymentMode::Distributed;
-  } else {
-    SPDLOG_ERROR("Unrecognized deployment mode: {}. Exiting...", mode);
-    throw std::runtime_error("Unrecognized deployment mode");
-  }
+  assert(mode == "distributed");
+  mDeploymentMode = DeploymentMode::Distributed;
 
   SPDLOG_INFO("Deployment mode is {}", mode);
 }
@@ -109,7 +99,7 @@ void App::initMonitor(const INIReader &reader) {
   appInfo.setAppInfo(appName, appVersion, appEnv);
 
   auto startTime = TimeUtil::currentTimeInNanos();
-  appInfo.gauge("start_time_guage", {}).set(startTime);
+  appInfo.gauge("start_time_gauge", {}).set(startTime);
 
   server.Registry(appInfo);
   server.Registry(gringofts::Singleton<gringofts::MonitorCenter>::getInstance());
@@ -122,75 +112,46 @@ void App::initMonitor(const INIReader &reader) {
 
 void App::initMemoryPool(const INIReader &reader) {
   if (gringofts::PerfConfig::getInstance().getMemoryPoolType() == "monotonic") {
-    mFactory = std::make_shared<gringofts::PMRContainerFactory>("PMRFactory",
+    mFactory = std::make_shared<gringofts::PMRContainerFactory>(
+        "PMRFactory",
         std::make_unique<gringofts::MonotonicPMRMemoryPool>(
-          "monotonicPool", gringofts::PerfConfig::getInstance().getMaxMemoryPoolSizeInMB()));
+            "monotonicPool",
+            gringofts::PerfConfig::getInstance().getMaxMemoryPoolSizeInMB()));
   } else {
-    mFactory = std::make_shared<gringofts::PMRContainerFactory>("PMRFactory",
-                                                                std::make_unique<gringofts::NewDeleteMemoryPool>(
-                                                                    "newDeletePool"));
+    mFactory = std::make_shared<gringofts::PMRContainerFactory>(
+        "PMRFactory",
+        std::make_unique<gringofts::NewDeleteMemoryPool>(
+            "newDeletePool"));
   }
 }
 
 void App::initCommandEventStore(const INIReader &reader) {
   std::string storeType = reader.Get("cluster", "persistence.type", "UNKNOWN");
-  assert(storeType != "UNKNOWN");
-  if (storeType == "default") {
-    assert(mDeploymentMode == DeploymentMode::Standalone);
+  assert(storeType == "raft");
+  assert(mDeploymentMode == DeploymentMode::Distributed);
 
-    mCommandEventStore = std::make_shared<DefaultCommandEventStore>();
-    mReadonlyCommandEventStoreForCommandProcessLoop = std::make_unique<ReadonlyDefaultCommandEventStore>();
-    mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlyDefaultCommandEventStore>();
-    mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlyDefaultCommandEventStore>();
-  } else if (storeType == "sqlite") {
-    assert(mDeploymentMode == DeploymentMode::Standalone);
+  std::string configPath = reader.Get("cluster", "raft.config.path", "UNKNOWN");
+  assert(configPath != "UNKNOWN");
 
-    std::string configPath = reader.Get("cluster", "sqlite.path", "UNKNOWN");
-    assert(configPath != "UNKNOWN");
-    auto sqliteDao = std::make_shared<SQLiteStoreDao>(configPath.c_str());
-    std::shared_ptr<IdGenerator> commandIdGenerator = std::make_shared<IdGenerator>();
-    std::shared_ptr<IdGenerator> eventIdGenerator = std::make_shared<IdGenerator>();
-    mCommandEventStore =
-        std::make_shared<SQLiteCommandEventStore>(sqliteDao, commandIdGenerator, eventIdGenerator);
-    mReadonlyCommandEventStoreForCommandProcessLoop =
-        std::make_unique<ReadonlySQLiteCommandEventStore>(sqliteDao,
-                                                          true,
-                                                          commandIdGenerator,
-                                                          eventIdGenerator);
-    mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlySQLiteCommandEventStore>(sqliteDao,
-                                                                                                    false,
-                                                                                                    nullptr,
-                                                                                                    nullptr);
-    mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlySQLiteCommandEventStore>(sqliteDao,
-                                                                                                false,
-                                                                                                nullptr,
-                                                                                                nullptr);
-  } else if (storeType == "raft") {
-    assert(mDeploymentMode == DeploymentMode::Distributed);
-
-    std::string configPath = reader.Get("cluster", "raft.config.path", "UNKNOWN");
-    assert(configPath != "UNKNOWN");
-
-    std::shared_ptr<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>> commandEventDecoder =
-        std::make_shared<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>>();
-    auto myNodeId = gringofts::app::AppInfo::getMyNodeId();
-    auto myClusterInfo = gringofts::app::AppInfo::getMyClusterInfo();
-    auto raftImpl = raft::buildRaftImpl(configPath.c_str(), myNodeId, myClusterInfo);
-    auto metricsAdaptor = std::make_shared<RaftMonitorAdaptor>(raftImpl);
-    enableMonitorable(metricsAdaptor);
-    mCommandEventStore = std::make_shared<RaftCommandEventStore>(raftImpl, mCrypto);
-    mReadonlyCommandEventStoreForCommandProcessLoop = nullptr;
-    mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
-                                                                                                  commandEventDecoder,
-                                                                                                  commandEventDecoder,
-                                                                                                  mCrypto,
-                                                                                                  true);
-    mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
-                                                                                              commandEventDecoder,
-                                                                                              commandEventDecoder,
-                                                                                              mCrypto,
-                                                                                              false);
-  }
+  std::shared_ptr<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>> commandEventDecoder =
+      std::make_shared<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>>();
+  auto myNodeId = gringofts::app::AppInfo::getMyNodeId();
+  auto myClusterInfo = gringofts::app::AppInfo::getMyClusterInfo();
+  auto raftImpl = raft::buildRaftImpl(configPath.c_str(), myNodeId, myClusterInfo);
+  auto metricsAdaptor = std::make_shared<RaftMonitorAdaptor>(raftImpl);
+  enableMonitorable(metricsAdaptor);
+  mCommandEventStore = std::make_shared<RaftCommandEventStore>(raftImpl, mCrypto);
+  mReadonlyCommandEventStoreForCommandProcessLoop = nullptr;
+  mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
+                                                                                                commandEventDecoder,
+                                                                                                commandEventDecoder,
+                                                                                                mCrypto,
+                                                                                                true);
+  mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
+                                                                                            commandEventDecoder,
+                                                                                            commandEventDecoder,
+                                                                                            mCrypto,
+                                                                                            false);
 }
 
 void App::startRequestReceiver() {
@@ -207,12 +168,8 @@ void App::startNetAdminServer() {
 void App::startProcessCommandLoop() {
   mCommandProcessLoopThread = std::thread([this]() {
     pthread_setname_np(pthread_self(), "CommandProcLoop");
-    switch (mDeploymentMode) {
-      case DeploymentMode::Standalone:mCommandProcessLoop->run();
-        break;
-      case DeploymentMode::Distributed:mCommandProcessLoop->runDistributed();
-        break;
-    }
+    assert(mDeploymentMode == DeploymentMode::Distributed);
+    mCommandProcessLoop->runDistributed();
   });
 }
 
@@ -243,9 +200,7 @@ void App::run() {
   if (mIsShutdown) {
     SPDLOG_WARN("App is already down. Will not run again.");
   } else {
-    if (mDeploymentMode == DeploymentMode::Standalone) {
-      mCommandProcessLoop->recoverOnce();
-    }
+    assert(mDeploymentMode == DeploymentMode::Distributed);
 
     // now run the threads
     startRequestReceiver();
