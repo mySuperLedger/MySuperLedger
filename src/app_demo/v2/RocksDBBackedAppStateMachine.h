@@ -26,8 +26,11 @@ namespace v2 {
 
 class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
  public:
-  RocksDBBackedAppStateMachine(const std::string &walDir, const std::string &dbDir)
-  { openRocksDB(walDir, dbDir, &mRocksDB); }
+  RocksDBBackedAppStateMachine(const std::string &walDir, const std::string &dbDir) {
+    openRocksDB(walDir,
+                dbDir,
+                &mRocksDB);
+  }
 
   ~RocksDBBackedAppStateMachine() override { closeRocksDB(&mRocksDB); }
 
@@ -48,7 +51,10 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   /// call flushToRocksDB() if needed.
   void commit(uint64_t appliedIndex) override;
 
-  std::string createCheckpoint(const std::string &baseDir) { assert(0); }
+  std::string createCheckpoint(const std::string &baseDir) {
+    assert(0);
+    return "";
+  }
 
  private:
   friend class MemoryBackedAppStateMachine;

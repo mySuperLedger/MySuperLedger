@@ -224,8 +224,14 @@ struct AsyncClientCallBase {
 
 template<typename ResponseType>
 struct AsyncClientCall : public AsyncClientCallBase {
-  std::string toString() const override { assert(0); }
-  RaftEventBase::Type getType() const override { assert(0); }
+  std::string toString() const override {
+    assert(0);
+    return "";
+  }
+  RaftEventBase::Type getType() const override {
+    assert(0);
+    return RaftEventBase::Type::Unknown;
+  }
 
   ResponseType mResponse;
   std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>> mResponseReader;

@@ -80,7 +80,10 @@ class SegmentLog : public Log {
   bool getTerm(uint64_t index, uint64_t *term) const override;
 
   bool getEntries(uint64_t index, uint64_t size,
-                  raft::LogEntry *entries) const override { assert(0); /** does not support */ }
+                  raft::LogEntry *entries) const override {
+    assert(0); /** does not support */
+    return false;
+  }
 
   uint64_t getEntries(const uint64_t startIndex,
                       const uint64_t maxLenInBytes, uint64_t maxBatchSize,

@@ -25,13 +25,6 @@ namespace demo {
 ProcessHint IncreaseHandler::process(const AppStateMachine &appStateMachine,
                                      const IncreaseCommand &increaseCommand,
                                      std::vector<std::shared_ptr<Event>> *events) {
-  if (appStateMachine.getValue() >= increaseCommand.getValue()) {
-    return ProcessHint{201, "Duplicated request"};
-  }
-  if (appStateMachine.getValue() + 1 < increaseCommand.getValue()) {
-    return ProcessHint{400, "Invalid request"};
-  }
-
   events->push_back(std::make_shared<ProcessedEvent>(TimeUtil::currentTimeInNanos(), increaseCommand.getRequest()));
 
   for (auto &eventPtr : *events) {

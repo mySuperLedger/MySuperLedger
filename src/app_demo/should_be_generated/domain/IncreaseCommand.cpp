@@ -31,7 +31,7 @@ IncreaseCommand::IncreaseCommand(TimestampInNanos createdTimeInNanos, const std:
 void IncreaseCommand::onPersisted(const std::string &message) {
   auto *callData = getRequestHandle();
   if (callData == nullptr) {
-    SPDLOG_WARN("This command does not have request attached.");
+//    SPDLOG_WARN("This command does not have request attached.");
     return;
   }
   callData->fillResultAndReply(200, message, std::nullopt);
@@ -43,7 +43,7 @@ void IncreaseCommand::onPersistFailed(
     std::optional<uint64_t> reserved) {
   auto *callData = getRequestHandle();
   if (callData == nullptr) {
-    SPDLOG_WARN("This command does not have request attached.");
+//    SPDLOG_WARN("This command does not have request attached.");
     return;
   }
   callData->fillResultAndReply(code, errorMessage, reserved);

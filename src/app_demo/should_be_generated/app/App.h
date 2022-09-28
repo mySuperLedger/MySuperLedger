@@ -25,6 +25,7 @@ limitations under the License.
 #include "../../../app_util/NetAdminServer.h"
 #include "../../../infra/es/Command.h"
 #include "../../../infra/es/CommandEventStore.h"
+#include "../../../infra/raft/RaftInterface.h"
 #include "../../../infra/util/CryptoUtil.h"
 #include "../../../infra/util/PMRContainerFactory.h"
 
@@ -65,6 +66,8 @@ class App final {
 
   void initCommandEventStore(const INIReader &reader);
 
+  void initBenchmark(const INIReader &reader);
+
   void startRequestReceiver();
 
   void startNetAdminServer();
@@ -77,12 +80,15 @@ class App final {
 
   void startPostServerLoop();
 
+  void startBenchmark();
+
  private:
   DeploymentMode mDeploymentMode = DeploymentMode::Standalone;
 
   /// the factory to create container from a memory pool
   std::shared_ptr<gringofts::PMRContainerFactory> mFactory;
 
+  std::shared_ptr<raft::RaftInterface> mRaftImpl;
   BlockingQueue<std::shared_ptr<Command>> mCommandQueue;
   std::unique_ptr<RequestReceiver> mRequestReceiver;
   std::unique_ptr<app::CommandProcessLoopInterface> mCommandProcessLoop;
@@ -105,6 +111,11 @@ class App final {
   std::thread mPostServerThread;
 
   bool mIsShutdown;
+
+  /// benchmark related
+  std::thread mBenchmarkThread;
+  bool mRunBenchmark = false;
+  uint64_t mTotalRequestCnt;
 };
 
 }  /// namespace demo

@@ -20,7 +20,6 @@ namespace gringofts {
 namespace demo {
 
 void IncreaseApplier::apply(const ProcessedEvent &event, AppStateMachine *appStateMachine) {
-  assert(appStateMachine->getValue() + 1 == event.getValue());
   appStateMachine->setValue(event.getValue());
 }
 

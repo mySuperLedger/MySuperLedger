@@ -19,9 +19,6 @@ namespace demo {
 namespace v2 {
 
 void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
-  assert(mValue + 1 == value);
-  SPDLOG_INFO("set value from {} to {}", mValue, value);
-
   /// save in memory
   mValue = value;
 
