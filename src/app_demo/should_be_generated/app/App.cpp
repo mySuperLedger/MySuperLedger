@@ -22,6 +22,7 @@ limitations under the License.
 
 namespace gringofts {
 namespace demo {
+using protos::IncreaseRequest;
 
 App::App(const char *configPath) : mIsShutdown(false) {
   SPDLOG_INFO("current working dir: {}", FileUtil::currentWorkingDir());
@@ -45,30 +46,28 @@ App::App(const char *configPath) : mIsShutdown(false) {
 
   initCommandEventStore(reader);
 
+  initBenchmark(reader);
+
   std::string snapshotDir = reader.Get("snapshot", "dir", "UNKNOWN");
   assert(snapshotDir != "UNKNOWN");
 
   auto commandEventDecoder = std::make_shared<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>>();
 
   const auto &appVersion = app::AppInfo::appVersion();
-  if (appVersion == "v2") {
-    mEventApplyLoop =
-        std::make_shared<app::EventApplyLoop<v2::RocksDBBackedAppStateMachine>>(
-            reader, commandEventDecoder, std::move(mReadonlyCommandEventStoreForEventApplyLoop), snapshotDir);
-    mCommandProcessLoop = std::make_unique<CommandProcessLoop<v2::MemoryBackedAppStateMachine>>(
-        reader,
-        commandEventDecoder,
-        mDeploymentMode,
-        mEventApplyLoop,
-        mCommandQueue,
-        std::move(mReadonlyCommandEventStoreForCommandProcessLoop),
-        mCommandEventStore,
-        snapshotDir,
-        mFactory);
-  } else {
-    SPDLOG_ERROR("App version {} is not supported. Exiting...", appVersion);
-    assert(0);
-  }
+  assert(appVersion == "v2");
+  mEventApplyLoop =
+      std::make_shared<app::EventApplyLoop<v2::RocksDBBackedAppStateMachine>>(
+          reader, commandEventDecoder, std::move(mReadonlyCommandEventStoreForEventApplyLoop), snapshotDir);
+  mCommandProcessLoop = std::make_unique<CommandProcessLoop<v2::MemoryBackedAppStateMachine>>(
+      reader,
+      commandEventDecoder,
+      mDeploymentMode,
+      mEventApplyLoop,
+      mCommandQueue,
+      std::move(mReadonlyCommandEventStoreForCommandProcessLoop),
+      mCommandEventStore,
+      snapshotDir,
+      mFactory);
 
   mRequestReceiver = ::std::make_unique<RequestReceiver>(reader, app::AppInfo::gatewayPort(), mCommandQueue);
   mNetAdminServer = ::std::make_unique<app::NetAdminServer>(reader, mEventApplyLoop);
@@ -137,21 +136,27 @@ void App::initCommandEventStore(const INIReader &reader) {
       std::make_shared<app::CommandEventDecoderImpl<EventDecoderImpl, CommandDecoderImpl>>();
   auto myNodeId = gringofts::app::AppInfo::getMyNodeId();
   auto myClusterInfo = gringofts::app::AppInfo::getMyClusterInfo();
-  auto raftImpl = raft::buildRaftImpl(configPath.c_str(), myNodeId, myClusterInfo);
-  auto metricsAdaptor = std::make_shared<RaftMonitorAdaptor>(raftImpl);
+  mRaftImpl = raft::buildRaftImpl(configPath.c_str(), myNodeId, myClusterInfo);
+  auto metricsAdaptor = std::make_shared<RaftMonitorAdaptor>(mRaftImpl);
   enableMonitorable(metricsAdaptor);
-  mCommandEventStore = std::make_shared<RaftCommandEventStore>(raftImpl, mCrypto);
+  mCommandEventStore = std::make_shared<RaftCommandEventStore>(mRaftImpl, mCrypto);
   mReadonlyCommandEventStoreForCommandProcessLoop = nullptr;
-  mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
+  mReadonlyCommandEventStoreForEventApplyLoop = std::make_unique<ReadonlyRaftCommandEventStore>(mRaftImpl,
                                                                                                 commandEventDecoder,
                                                                                                 commandEventDecoder,
                                                                                                 mCrypto,
                                                                                                 true);
-  mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlyRaftCommandEventStore>(raftImpl,
+  mReadonlyCommandEventStoreForPostServer = std::make_unique<ReadonlyRaftCommandEventStore>(mRaftImpl,
                                                                                             commandEventDecoder,
                                                                                             commandEventDecoder,
                                                                                             mCrypto,
                                                                                             false);
+}
+
+void App::initBenchmark(const INIReader &reader) {
+  mRunBenchmark = reader.GetBoolean("benchmark", "enable", false);
+  mTotalRequestCnt = reader.GetInteger("benchmark", "total.cnt", 0);
+  assert(!mRunBenchmark || mTotalRequestCnt > 0);
 }
 
 void App::startRequestReceiver() {
@@ -196,6 +201,40 @@ void App::startPostServerLoop() {
   });
 }
 
+void App::startBenchmark() {
+  mBenchmarkThread = std::thread([this]() {
+    pthread_setname_np(pthread_self(), "Benchmark");
+    IncreaseRequest request;
+    unsigned int seed = 1234;
+    uint64_t cnt = 0;
+    auto startTimeInNanos = TimeUtil::currentTimeInNanos();
+    while (true) {
+      try {
+        if (mRaftImpl->getRaftRole() != RaftRole::Leader) {
+          usleep(1'000);  // sleep 1ms
+          continue;
+        }
+        cnt++;
+        request.set_value(rand_r(&seed));
+        auto createdTimeInNanos = TimeUtil::currentTimeInNanos();
+        auto command = std::make_shared<IncreaseCommand>(createdTimeInNanos, request);
+        command->setCreatorId(app::AppInfo::subsystemId());
+        command->setGroupId(app::AppInfo::groupId());
+        command->setGroupVersion(app::AppInfo::groupVersion());
+        mCommandQueue.enqueue(command);
+        if (cnt == mTotalRequestCnt) {
+          auto elapsedTimeInNanos = TimeUtil::currentTimeInNanos() - startTimeInNanos;
+          SPDLOG_INFO("Complete sending {} requests, took {}ms", cnt, elapsedTimeInNanos / 1'000'000);
+          break;
+        }
+      }
+      catch (const QueueStoppedException &e) {
+        SPDLOG_WARN(e.what());
+      }
+    }
+  });
+}
+
 void App::run() {
   if (mIsShutdown) {
     SPDLOG_WARN("App is already down. Will not run again.");
@@ -209,6 +248,10 @@ void App::run() {
     startEventApplyLoop();
     startProcessCommandLoop();
     startPostServerLoop();
+    if (mRunBenchmark) {
+      startBenchmark();
+      mBenchmarkThread.join();
+    }
 
     // wait for all threads to exit
     mPostServerThread.join();

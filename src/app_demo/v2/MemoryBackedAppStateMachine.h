@@ -27,13 +27,11 @@ namespace v2 {
 class MemoryBackedAppStateMachine : public v2::AppStateMachine {
  public:
   explicit MemoryBackedAppStateMachine(
-       std::shared_ptr<gringofts::PMRContainerFactory> containerFactory) {}
+      std::shared_ptr<gringofts::PMRContainerFactory> containerFactory) {}
   /**
    * implement getter() and setter()
    */
   void setValue(uint64_t value) override {
-    SPDLOG_INFO("set value from {} to {}", mValue, value);
-
     mValue = value;
   }
 
