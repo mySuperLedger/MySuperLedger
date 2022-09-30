@@ -12,38 +12,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_V2_APPSTATEMACHINE_H_
-#define SRC_APP_DEMO_V2_APPSTATEMACHINE_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_
 
-#include "../AppStateMachine.h"
+#include "../../../app_util/CommandProcessLoop.h"
+#include "../../v2/MemoryBackedAppStateMachine.h"
 
 namespace gringofts {
 namespace demo {
-namespace v2 {
 
-class AppStateMachine : public demo::AppStateMachine {
+template<typename StateMachineType>
+class CommandProcessLoop : public app::CommandProcessLoop<StateMachineType> {
  public:
-  struct RocksDBConf {
-    /// RocksDB key
-    static constexpr const char *kLastAppliedIndexKey = "last_applied_index";
-    static constexpr const char *kValueKey = "value";
-  };
+  using app::CommandProcessLoop<StateMachineType>::CommandProcessLoop;
 
-  /**
-   * integration
-   */
-  void clearState() override { mValue = 0; }
-
-  /// unit test
-  bool hasSameState(const StateMachine &) const override { return true; }
-
- protected:
-  /// state owned by both Memory-backed SM and RocksDB-backed SM
-  uint64_t mValue = 0;
+ private:
+  void processCommand(std::shared_ptr<Command>) override;
 };
 
-}  /// namespace v2
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_V2_APPSTATEMACHINE_H_
+#include "CommandProcessLoop.hpp"
+
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_

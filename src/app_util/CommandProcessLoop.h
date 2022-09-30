@@ -108,7 +108,7 @@ class CommandProcessLoopBase : public CommandProcessLoopInterface {
    */
   std::optional<Id> replayEvents(std::optional<Id> offset);
 
-  /// TODO: revert to private once ProcessCommandLoop in app_demo is removed
+  /// TODO: revert to private once ProcessCommandLoop in app_ledger is removed
   std::atomic<bool> mShouldExit = false;
   /// true if recover() has been invoked.
   bool mRecovered = false;

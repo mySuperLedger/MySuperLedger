@@ -282,7 +282,7 @@ include(cmake/protobuf/ProtoLibBuild.cmake)
 
 add_subdirectory(src/infra)
 add_subdirectory(src/app_util)
-add_subdirectory(src/app_demo)
+add_subdirectory(src/app_ledger)
 
 add_subdirectory(test)
 

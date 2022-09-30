@@ -12,24 +12,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_EVENTDECODERIMPL_H_
-#define SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_EVENTDECODERIMPL_H_
+#ifndef SRC_APP_LEDGER_EXECUTION_INCREASEAPPLIER_H_
+#define SRC_APP_LEDGER_EXECUTION_INCREASEAPPLIER_H_
 
-#include "../../../infra/es/EventDecoder.h"
-#include "common_types.h"
+#include "../should_be_generated/domain/ProcessedEvent.h"
 
 namespace gringofts {
 namespace demo {
 
-class EventDecoderImpl : public EventDecoder {
- public:
-  EventDecoderImpl() = default;
-  ~EventDecoderImpl() = default;
+class AppStateMachine;
 
-  std::unique_ptr<Event> decodeEventFromString(const EventMetaData &, std::string_view) const override;
+class IncreaseApplier {
+ public:
+  void apply(const ProcessedEvent& event, AppStateMachine* appStateMachine);
 };
 
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_EVENTDECODERIMPL_H_
+#endif  // SRC_APP_LEDGER_EXECUTION_INCREASEAPPLIER_H_

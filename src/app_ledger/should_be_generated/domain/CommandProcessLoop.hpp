@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
-#define SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
 
 namespace gringofts {
 namespace demo {
@@ -58,4 +58,4 @@ void CommandProcessLoop<StateMachineType>::processCommand(std::shared_ptr<Comman
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_

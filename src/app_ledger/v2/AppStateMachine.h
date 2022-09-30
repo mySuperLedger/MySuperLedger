@@ -12,27 +12,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_EXECUTION_INCREASEHANDLER_H_
-#define SRC_APP_DEMO_EXECUTION_INCREASEHANDLER_H_
+#ifndef SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_
+#define SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_
 
-#include <string>
-
-#include "../../infra/es/Event.h"
-#include "../should_be_generated/domain/IncreaseCommand.h"
+#include "../AppStateMachine.h"
 
 namespace gringofts {
 namespace demo {
+namespace v2 {
 
-class AppStateMachine;
-
-class IncreaseHandler {
+class AppStateMachine : public demo::AppStateMachine {
  public:
-  ProcessHint process(const AppStateMachine &appStateMachine,
-                      const IncreaseCommand &increaseCommand,
-                      std::vector<std::shared_ptr<Event>> *);
+  struct RocksDBConf {
+    /// RocksDB key
+    static constexpr const char *kLastAppliedIndexKey = "last_applied_index";
+    static constexpr const char *kValueKey = "value";
+  };
+
+  /**
+   * integration
+   */
+  void clearState() override { mValue = 0; }
+
+  /// unit test
+  bool hasSameState(const StateMachine &) const override { return true; }
+
+ protected:
+  /// state owned by both Memory-backed SM and RocksDB-backed SM
+  uint64_t mValue = 0;
 };
 
+}  /// namespace v2
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_EXECUTION_INCREASEHANDLER_H_
+#endif  // SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_
