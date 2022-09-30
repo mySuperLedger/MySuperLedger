@@ -21,7 +21,7 @@ docs/doxygen/
 
 # auto-gen code #
 #################
-src/app_demo/generated
+src/app_ledger/generated
 src/app_util/generated
 src/infra/es/store/generated
 src/infra/raft/generated

@@ -11,8 +11,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
-#ifndef SRC_APP_DEMO_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_
-#define SRC_APP_DEMO_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_
 
 #include <INIReader.h>
 #include <grpcpp/grpcpp.h>
@@ -55,4 +55,4 @@ typedef app::RequestCallData<CallDataHandler> CallData;
 typedef app::RequestReceiver<CallData> RequestReceiver;
 
 }  // namespace gringofts::demo
-#endif  // SRC_APP_DEMO_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_

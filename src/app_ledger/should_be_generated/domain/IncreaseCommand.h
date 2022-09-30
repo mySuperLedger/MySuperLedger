@@ -12,8 +12,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
-#define SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
 
 #include "../../../infra/es/Command.h"
 #include "../../../infra/es/ProcessCommandStateMachine.h"
@@ -63,4 +63,4 @@ class IncreaseCommand : public Command {
 }  ///  namespace demo
 }  ///  namespace gringofts
 
-#endif  // SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_

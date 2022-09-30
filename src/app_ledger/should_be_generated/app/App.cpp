@@ -92,8 +92,8 @@ void App::initMonitor(const INIReader &reader) {
   auto &server = gringofts::Singleton<santiago::Server>::getInstance("0.0.0.0", monitorPort);
 
   auto &appInfo = Singleton<santiago::AppInfo>::getInstance();
-  auto appName = "demoApp";
-  auto appVersion = "demoVersion";
+  auto appName = "LedgerApp";
+  auto appVersion = "LedgerVersion";
   auto appEnv = reader.Get("app", "env", "unknown");
   appInfo.setAppInfo(appName, appVersion, appEnv);
 

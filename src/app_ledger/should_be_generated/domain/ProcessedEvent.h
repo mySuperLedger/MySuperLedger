@@ -12,27 +12,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_
-#define SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_
 
-#include "../../../app_util/CommandProcessLoop.h"
-#include "../../v2/MemoryBackedAppStateMachine.h"
+#include "../../../infra/es/Event.h"
+
+#include "../../generated/grpc/demo.pb.h"
+#include "common_types.h"
 
 namespace gringofts {
 namespace demo {
 
-template<typename StateMachineType>
-class CommandProcessLoop : public app::CommandProcessLoop<StateMachineType> {
+/**
+ * This event is created to record journal line creation.
+ */
+class ProcessedEvent : public Event {
  public:
-  using app::CommandProcessLoop<StateMachineType>::CommandProcessLoop;
+  ProcessedEvent(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request);
+
+  ProcessedEvent(TimestampInNanos createdTimeInNanos, std::string_view journalString);
+
+  std::string encodeToString() const override;
+
+  void decodeFromString(std::string_view payload) override;
+
+  int getValue() const {
+    return mRequest.value();
+  }
 
  private:
-  void processCommand(std::shared_ptr<Command>) override;
+  protos::IncreaseRequest mRequest;
 };
 
 }  /// namespace demo
 }  /// namespace gringofts
 
-#include "CommandProcessLoop.hpp"
-
-#endif  // SRC_APP_DEMO_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_

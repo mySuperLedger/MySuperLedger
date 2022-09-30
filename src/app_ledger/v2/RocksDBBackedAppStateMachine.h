@@ -12,8 +12,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
-#define SRC_APP_DEMO_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
+#ifndef SRC_APP_LEDGER_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
+#define SRC_APP_LEDGER_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
 
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
@@ -87,4 +87,4 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
+#endif  // SRC_APP_LEDGER_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_

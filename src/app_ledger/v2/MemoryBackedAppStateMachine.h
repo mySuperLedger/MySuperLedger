@@ -12,8 +12,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_V2_MEMORYBACKEDAPPSTATEMACHINE_H_
-#define SRC_APP_DEMO_V2_MEMORYBACKEDAPPSTATEMACHINE_H_
+#ifndef SRC_APP_LEDGER_V2_MEMORYBACKEDAPPSTATEMACHINE_H_
+#define SRC_APP_LEDGER_V2_MEMORYBACKEDAPPSTATEMACHINE_H_
 
 #include <optional>
 
@@ -53,4 +53,4 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_V2_MEMORYBACKEDAPPSTATEMACHINE_H_
+#endif  // SRC_APP_LEDGER_V2_MEMORYBACKEDAPPSTATEMACHINE_H_

@@ -12,22 +12,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_DEMO_EXECUTION_INCREASEAPPLIER_H_
-#define SRC_APP_DEMO_EXECUTION_INCREASEAPPLIER_H_
+#ifndef SRC_APP_LEDGER_EXECUTION_INCREASEHANDLER_H_
+#define SRC_APP_LEDGER_EXECUTION_INCREASEHANDLER_H_
 
-#include "../should_be_generated/domain/ProcessedEvent.h"
+#include <string>
+
+#include "../../infra/es/Event.h"
+#include "../should_be_generated/domain/IncreaseCommand.h"
 
 namespace gringofts {
 namespace demo {
 
 class AppStateMachine;
 
-class IncreaseApplier {
+class IncreaseHandler {
  public:
-  void apply(const ProcessedEvent& event, AppStateMachine* appStateMachine);
+  ProcessHint process(const AppStateMachine &appStateMachine,
+                      const IncreaseCommand &increaseCommand,
+                      std::vector<std::shared_ptr<Event>> *);
 };
 
 }  /// namespace demo
 }  /// namespace gringofts
 
-#endif  // SRC_APP_DEMO_EXECUTION_INCREASEAPPLIER_H_
+#endif  // SRC_APP_LEDGER_EXECUTION_INCREASEHANDLER_H_
