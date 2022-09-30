@@ -38,7 +38,7 @@ limitations under the License.
 #include "RequestReceiver.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class App final {
  public:
@@ -118,7 +118,7 @@ class App final {
   uint64_t mTotalRequestCnt;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_APP_H_

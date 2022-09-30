@@ -21,10 +21,10 @@ limitations under the License.
 #include "../../../infra/es/Command.h"
 #include "../../../infra/es/Event.h"
 
-#include "../../generated/grpc/demo.pb.h"
+#include "../../generated/grpc/ledger.pb.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 // es interface related
 using ::gringofts::Command;
@@ -50,7 +50,7 @@ using CommandEventsEntry = std::tuple<std::shared_ptr<Command>, std::vector<std:
 // @formatter:on
 using CommandEventQueue = BlockingQueue<CommandEventsEntry>;
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMON_TYPES_H_

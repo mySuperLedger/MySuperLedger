@@ -21,7 +21,7 @@ limitations under the License.
 #include "../should_be_generated/domain/IncreaseCommand.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class AppStateMachine;
 
@@ -32,7 +32,7 @@ class IncreaseHandler {
                       std::vector<std::shared_ptr<Event>> *);
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_EXECUTION_INCREASEHANDLER_H_

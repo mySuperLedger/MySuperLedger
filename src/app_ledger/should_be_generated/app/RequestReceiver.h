@@ -22,16 +22,16 @@ limitations under the License.
 #include  "../../../app_util/RequestReceiver.h"
 #include "../../../infra/es/Command.h"
 #include "../../../infra/util/TlsUtil.h"
-#include "../../generated/grpc/demo.grpc.pb.h"
+#include "../../generated/grpc/ledger.grpc.pb.h"
 #include "../domain/common_types.h"
 #include "../domain/IncreaseCommand.h"
 
-namespace gringofts::demo {
+namespace gringofts::ledger {
 using protos::IncreaseRequest;
 using protos::IncreaseResponse;
-using protos::DemoService;
+using protos::LedgerService;
 
-class CallDataHandler : public app::CallDataHandler<DemoService,
+class CallDataHandler : public app::CallDataHandler<LedgerService,
                                                     IncreaseRequest,
                                                     IncreaseResponse,
                                                     IncreaseCommand> {
@@ -41,7 +41,7 @@ class CallDataHandler : public app::CallDataHandler<DemoService,
                              std::optional<uint64_t> leaderId,
                              IncreaseResponse *response) override;
 
-  void request(DemoService::AsyncService *service,
+  void request(LedgerService::AsyncService *service,
                ::grpc::ServerContext *context,
                IncreaseRequest *request,
                ::grpc::ServerAsyncResponseWriter<IncreaseResponse> *responser,
@@ -54,5 +54,5 @@ class CallDataHandler : public app::CallDataHandler<DemoService,
 typedef app::RequestCallData<CallDataHandler> CallData;
 typedef app::RequestReceiver<CallData> RequestReceiver;
 
-}  // namespace gringofts::demo
+}  // namespace gringofts::ledger
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_REQUESTRECEIVER_H_

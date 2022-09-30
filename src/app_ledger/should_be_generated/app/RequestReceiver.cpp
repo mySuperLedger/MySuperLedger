@@ -14,7 +14,7 @@ limitations under the License.
 
 #include "RequestReceiver.h"
 
-namespace gringofts::demo {
+namespace gringofts::ledger {
 
 grpc::Status CallDataHandler::buildResponse(const IncreaseCommand &command, uint32_t code,
                                             const std::string &message,
@@ -34,7 +34,7 @@ grpc::Status CallDataHandler::buildResponse(const IncreaseCommand &command, uint
   return grpc::Status::OK;
 }
 
-void CallDataHandler::request(DemoService::AsyncService *service,
+void CallDataHandler::request(LedgerService::AsyncService *service,
                               ::grpc::ServerContext *context,
                               IncreaseRequest *request,
                               ::grpc::ServerAsyncResponseWriter<IncreaseResponse> *responser,
@@ -52,4 +52,4 @@ std::shared_ptr<IncreaseCommand> CallDataHandler::buildCommand(
   return command;
 }
 
-}  // namespace gringofts::demo
+}  // namespace gringofts::ledger

@@ -17,10 +17,10 @@ limitations under the License.
 
 #include "../../../infra/es/Command.h"
 #include "../../../infra/es/ProcessCommandStateMachine.h"
-#include "../../generated/grpc/demo.pb.h"
+#include "../../generated/grpc/ledger.pb.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 /**
  * This is the command for execution plan.  For now, it support protobuf
@@ -60,7 +60,7 @@ class IncreaseCommand : public Command {
   protos::IncreaseRequest mRequest;
 };
 
-}  ///  namespace demo
+}  ///  namespace ledger
 }  ///  namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_

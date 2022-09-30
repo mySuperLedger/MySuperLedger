@@ -15,7 +15,7 @@ limitations under the License.
 #include "RocksDBBackedAppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 namespace v2 {
 
 void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
@@ -139,5 +139,5 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
 }
 
 }  /// namespace v2
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

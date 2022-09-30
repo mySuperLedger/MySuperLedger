@@ -20,7 +20,7 @@ limitations under the License.
 #include "common_types.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 std::unique_ptr<Command> CommandDecoderImpl::decodeCommandFromString(
     const CommandMetaData &metaData, std::string_view payload) const {
@@ -38,5 +38,5 @@ std::unique_ptr<Command> CommandDecoderImpl::decodeCommandFromString(
   return std::move(command);
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

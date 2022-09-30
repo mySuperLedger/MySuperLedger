@@ -20,7 +20,7 @@ limitations under the License.
 #include "../AppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 ProcessHint IncreaseHandler::process(const AppStateMachine &appStateMachine,
                                      const IncreaseCommand &increaseCommand,
@@ -36,5 +36,5 @@ ProcessHint IncreaseHandler::process(const AppStateMachine &appStateMachine,
   return ProcessHint{200, "Success"};
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

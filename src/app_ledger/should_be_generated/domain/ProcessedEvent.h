@@ -17,11 +17,11 @@ limitations under the License.
 
 #include "../../../infra/es/Event.h"
 
-#include "../../generated/grpc/demo.pb.h"
+#include "../../generated/grpc/ledger.pb.h"
 #include "common_types.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 /**
  * This event is created to record journal line creation.
@@ -44,7 +44,7 @@ class ProcessedEvent : public Event {
   protos::IncreaseRequest mRequest;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_

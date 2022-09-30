@@ -17,7 +17,7 @@ limitations under the License.
 #define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 template<typename StateMachineType>
 void CommandProcessLoop<StateMachineType>::processCommand(std::shared_ptr<Command> command) {
@@ -55,7 +55,7 @@ void CommandProcessLoop<StateMachineType>::processCommand(std::shared_ptr<Comman
               (ts3InNano - ts2InNano) / 1000.0);
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDPROCESSLOOP_HPP_

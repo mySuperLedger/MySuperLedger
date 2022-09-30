@@ -18,10 +18,10 @@ limitations under the License.
 #include "../AppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 namespace v2 {
 
-class AppStateMachine : public demo::AppStateMachine {
+class AppStateMachine : public ledger::AppStateMachine {
  public:
   struct RocksDBConf {
     /// RocksDB key
@@ -43,7 +43,7 @@ class AppStateMachine : public demo::AppStateMachine {
 };
 
 }  /// namespace v2
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_

@@ -18,7 +18,7 @@ limitations under the License.
 #include "../should_be_generated/domain/ProcessedEvent.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class AppStateMachine;
 
@@ -27,7 +27,7 @@ class IncreaseApplier {
   void apply(const ProcessedEvent& event, AppStateMachine* appStateMachine);
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_EXECUTION_INCREASEAPPLIER_H_

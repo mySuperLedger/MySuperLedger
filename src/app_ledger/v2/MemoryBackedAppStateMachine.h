@@ -21,7 +21,7 @@ limitations under the License.
 #include "RocksDBBackedAppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 namespace v2 {
 
 class MemoryBackedAppStateMachine : public v2::AppStateMachine {
@@ -50,7 +50,7 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
 };
 
 }  /// namespace v2
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_V2_MEMORYBACKEDAPPSTATEMACHINE_H_

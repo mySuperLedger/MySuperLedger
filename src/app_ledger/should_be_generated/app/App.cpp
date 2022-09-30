@@ -21,7 +21,7 @@ limitations under the License.
 #include "../../../infra/raft/metrics/RaftMonitorAdaptor.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 using protos::IncreaseRequest;
 
 App::App(const char *configPath) : mIsShutdown(false) {
@@ -282,5 +282,5 @@ void App::shutdown() {
   }
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

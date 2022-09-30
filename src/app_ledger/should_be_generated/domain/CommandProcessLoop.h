@@ -19,7 +19,7 @@ limitations under the License.
 #include "../../v2/MemoryBackedAppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 template<typename StateMachineType>
 class CommandProcessLoop : public app::CommandProcessLoop<StateMachineType> {
@@ -30,7 +30,7 @@ class CommandProcessLoop : public app::CommandProcessLoop<StateMachineType> {
   void processCommand(std::shared_ptr<Command>) override;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #include "CommandProcessLoop.hpp"

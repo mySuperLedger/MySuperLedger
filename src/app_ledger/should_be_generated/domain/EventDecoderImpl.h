@@ -19,7 +19,7 @@ limitations under the License.
 #include "common_types.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class EventDecoderImpl : public EventDecoder {
  public:
@@ -29,7 +29,7 @@ class EventDecoderImpl : public EventDecoder {
   std::unique_ptr<Event> decodeEventFromString(const EventMetaData &, std::string_view) const override;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTDECODERIMPL_H_

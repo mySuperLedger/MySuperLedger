@@ -24,7 +24,7 @@ limitations under the License.
 #include "../../../generated/grpc/publishEvents.grpc.pb.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 /**
  * publish command and event from command event store via grpc
@@ -60,7 +60,7 @@ class BundleExposePublisher : public protos::BundleExposeService::Service {
   std::atomic<uint64_t> mCurrentConcurrency = 0;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_POST_BUNDLEEXPOSEPUBLISHER_H_

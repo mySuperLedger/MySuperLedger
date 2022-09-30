@@ -16,7 +16,7 @@ limitations under the License.
 #include "ProcessedEvent.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 std::unique_ptr<Event> EventDecoderImpl::decodeEventFromString(const EventMetaData &metaData,
                                                                std::string_view payload) const {
@@ -32,5 +32,5 @@ std::unique_ptr<Event> EventDecoderImpl::decodeEventFromString(const EventMetaDa
   return std::move(event);
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

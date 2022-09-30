@@ -23,5 +23,5 @@ int main(int argc, char **argv) {
   spdlog::set_pattern("[%D %H:%M:%S.%F] [%s:%# %!] [%l] [thread %t] %v");
   SPDLOG_INFO("pid={}", getpid());
   assert(argc == 2);
-  gringofts::demo::App(argv[1]).run();
+  gringofts::ledger::App(argv[1]).run();
 }

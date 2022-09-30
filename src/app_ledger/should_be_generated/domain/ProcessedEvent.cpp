@@ -17,7 +17,7 @@ limitations under the License.
 #include <spdlog/spdlog.h>
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 ProcessedEvent::ProcessedEvent(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request)
     : Event(PROCESSED_EVENT, createdTimeInNanos), mRequest(std::move(request)) {}
@@ -35,5 +35,5 @@ void ProcessedEvent::decodeFromString(std::string_view payload) {
   mRequest.ParseFromString(std::string(payload));
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

@@ -17,11 +17,11 @@ limitations under the License.
 #include "../AppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 void IncreaseApplier::apply(const ProcessedEvent &event, AppStateMachine *appStateMachine) {
   appStateMachine->setValue(event.getValue());
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
