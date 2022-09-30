@@ -2,7 +2,7 @@
 // This file will keep the same in both java and c++ projects
 
 syntax = "proto3";
-package gringofts.demo.protos;
+package gringofts.ledger.protos;
 
 option java_multiple_files = true;
 option java_package = "com.ebay.gringofts";

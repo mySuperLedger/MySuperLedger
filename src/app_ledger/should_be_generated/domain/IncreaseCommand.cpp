@@ -17,7 +17,7 @@ limitations under the License.
 #include "common_types.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 IncreaseCommand::IncreaseCommand(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request)
     : Command(INCREASE_COMMAND, createdTimeInNanos), mRequest(request) {
@@ -49,5 +49,5 @@ void IncreaseCommand::onPersistFailed(
   callData->fillResultAndReply(code, errorMessage, reserved);
 }
 
-}  ///  namespace demo
+}  ///  namespace ledger
 }  ///  namespace gringofts

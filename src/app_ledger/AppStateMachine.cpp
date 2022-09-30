@@ -15,7 +15,7 @@ limitations under the License.
 #include "AppStateMachine.h"
 #include "should_be_generated/domain/common_types.h"
 
-namespace gringofts::demo {
+namespace gringofts::ledger {
 
 AppStateMachine::AppStateMachine() {
   registerCommandProcessor(INCREASE_COMMAND, [this](const gringofts::Command &command,
@@ -40,4 +40,4 @@ ProcessHint AppStateMachine::processCommandAndApply(
   }
   return hint;
 }
-}  // namespace gringofts::demo
+}  // namespace gringofts::ledger

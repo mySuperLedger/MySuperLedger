@@ -12,9 +12,9 @@ file(MAKE_DIRECTORY ${proto_generated_dir})
 
 set(proto_file_list
         should_be_generated/domain/protos/publishEvents.proto
-        should_be_generated/domain/protos/demo.proto)
+        should_be_generated/domain/protos/ledger.proto)
 
-ADD_PROTO_SET(demo_proto_library "${proto_file_list}" ${proto_generated_dir})
+ADD_PROTO_SET(ledger_proto_library "${proto_file_list}" ${proto_generated_dir})
 
 ## src list
 # app_ledger
@@ -48,8 +48,8 @@ add_library(app_ledger STATIC
         ${APP_LEDGER_AUTOGEN}
         ${APP_LEDGER_SRC})
 
-add_dependencies(app_ledger demo_proto_library)
-target_link_libraries(app_ledger demo_proto_library)
+add_dependencies(app_ledger ledger_proto_library)
+target_link_libraries(app_ledger ledger_proto_library)
 
 # executables
 add_executable(LedgerApp

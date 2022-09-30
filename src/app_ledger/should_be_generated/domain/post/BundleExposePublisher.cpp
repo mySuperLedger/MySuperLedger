@@ -23,7 +23,7 @@ limitations under the License.
 #include "../IncreaseCommand.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 BundleExposePublisher::BundleExposePublisher(const INIReader &reader,
                                              std::unique_ptr<ReadonlyCommandEventStore> commandEventStore) :
@@ -122,5 +122,5 @@ void BundleExposePublisher::shutdown() {
   mServer->Shutdown();
 }
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts

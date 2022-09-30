@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package gringofts.demo.protos;
+package gringofts.ledger.protos;
 
 // The DEMO service definition.
-service DemoService {
+service LedgerService {
     rpc Execute (IncreaseRequest) returns (IncreaseResponse) {}
 }
 

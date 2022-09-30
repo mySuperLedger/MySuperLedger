@@ -18,7 +18,7 @@ limitations under the License.
 #include "../../../infra/es/CommandDecoder.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class CommandDecoderImpl : public CommandDecoder {
  public:
@@ -29,7 +29,7 @@ class CommandDecoderImpl : public CommandDecoder {
                                                    std::string_view) const override;
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDDECODERIMPL_H_

@@ -22,7 +22,7 @@ limitations under the License.
 #include "../app_util/AppStateMachine.h"
 
 namespace gringofts {
-namespace demo {
+namespace ledger {
 
 class AppStateMachine : public gringofts::app::AppStateMachine {
  public:
@@ -58,7 +58,7 @@ class AppStateMachine : public gringofts::app::AppStateMachine {
   }
 };
 
-}  /// namespace demo
+}  /// namespace ledger
 }  /// namespace gringofts
 
 #endif  // SRC_APP_LEDGER_APPSTATEMACHINE_H_
