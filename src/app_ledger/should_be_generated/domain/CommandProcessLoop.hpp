@@ -1,5 +1,5 @@
 /************************************************************************
-Copyright 2019-2020 eBay Inc.
+Copyright 2022 MySuperLedger
 Authors/Developers: Bing (Glen) Gen, Qi (Jacky) Jia
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

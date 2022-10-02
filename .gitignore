@@ -38,6 +38,7 @@ test/target/
 test.db
 test/**/node/*
 *.cov
+*.gcov
 node_*
 Testing
 
