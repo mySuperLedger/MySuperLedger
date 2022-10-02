@@ -11,7 +11,6 @@ set(proto_generated_dir "generated/grpc")
 file(MAKE_DIRECTORY ${proto_generated_dir})
 
 set(proto_file_list
-        should_be_generated/domain/protos/publishEvents.proto
         should_be_generated/domain/protos/ledger.proto)
 
 ADD_PROTO_SET(ledger_proto_library "${proto_file_list}" ${proto_generated_dir})
@@ -25,8 +24,7 @@ set(APP_LEDGER_AUTOGEN
         should_be_generated/domain/CommandDecoderImpl.cpp
         should_be_generated/domain/EventDecoderImpl.cpp
         should_be_generated/domain/IncreaseCommand.cpp
-        should_be_generated/domain/ProcessedEvent.cpp
-        should_be_generated/domain/post/BundleExposePublisher.cpp)
+        should_be_generated/domain/ProcessedEvent.cpp)
 
 set(APP_LEDGER_SRC
         v2/RocksDBBackedAppStateMachine.cpp

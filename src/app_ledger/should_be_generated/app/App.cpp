@@ -1,5 +1,5 @@
 /************************************************************************
-Copyright 2019-2020 eBay Inc.
+Copyright 2022 MySuperLedger
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -71,7 +71,6 @@ App::App(const char *configPath) : mIsShutdown(false) {
 
   mRequestReceiver = ::std::make_unique<RequestReceiver>(reader, app::AppInfo::gatewayPort(), mCommandQueue);
   mNetAdminServer = ::std::make_unique<app::NetAdminServer>(reader, mEventApplyLoop);
-  mPostServer = std::make_unique<BundleExposePublisher>(reader, std::move(mReadonlyCommandEventStoreForPostServer));
 }
 
 App::~App() {
@@ -192,15 +191,6 @@ void App::startPersistLoop() {
   });
 }
 
-void App::startPostServerLoop() {
-  mPostServerThread = std::thread([this]() {
-    pthread_setname_np(pthread_self(), "PostServerMain");
-    if (mPostServer != nullptr) {
-      mPostServer->run();
-    }
-  });
-}
-
 void App::startBenchmark() {
   mBenchmarkThread = std::thread([this]() {
     pthread_setname_np(pthread_self(), "Benchmark");
@@ -247,14 +237,12 @@ void App::run() {
     startPersistLoop();
     startEventApplyLoop();
     startProcessCommandLoop();
-    startPostServerLoop();
     if (mRunBenchmark) {
       startBenchmark();
       mBenchmarkThread.join();
     }
 
     // wait for all threads to exit
-    mPostServerThread.join();
     mCommandProcessLoopThread.join();
     mEventApplyLoopThread.join();
     mPersistLoopThread.join();
@@ -276,9 +264,6 @@ void App::shutdown() {
     mCommandProcessLoop->shutdown();
     mEventApplyLoop->shutdown();
     mCommandEventStore->shutdown();
-    if (mPostServer != nullptr) {
-      mPostServer->shutdown();
-    }
   }
 }
 

@@ -1,5 +1,5 @@
 /************************************************************************
-Copyright 2019-2020 eBay Inc.
+Copyright 2022 MySuperLedger
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -34,7 +34,6 @@ limitations under the License.
 #include "../domain/CommandProcessLoop.h"
 #include "../domain/EventDecoderImpl.h"
 #include "../domain/common_types.h"
-#include "../domain/post/BundleExposePublisher.h"
 #include "RequestReceiver.h"
 
 namespace gringofts {
@@ -94,7 +93,6 @@ class App final {
   std::unique_ptr<app::CommandProcessLoopInterface> mCommandProcessLoop;
   std::shared_ptr<app::EventApplyLoopInterface> mEventApplyLoop;
   std::unique_ptr<app::NetAdminServer> mNetAdminServer;
-  std::unique_ptr<BundleExposePublisher> mPostServer;
 
   std::shared_ptr<CommandEventStore> mCommandEventStore;
   std::unique_ptr<ReadonlyCommandEventStore> mReadonlyCommandEventStoreForCommandProcessLoop;
@@ -108,7 +106,6 @@ class App final {
   std::thread mCommandProcessLoopThread;
   std::thread mEventApplyLoopThread;
   std::thread mPersistLoopThread;
-  std::thread mPostServerThread;
 
   bool mIsShutdown;
 
