@@ -2,17 +2,44 @@ syntax = "proto3";
 
 package gringofts.ledger.protos;
 
-// The DEMO service definition.
+// The Ledger service definition.
 service LedgerService {
-    rpc Execute (IncreaseRequest) returns (IncreaseResponse) {}
+  rpc CreateAccount (CreateAccount.Request) returns (CreateAccount.Response) {}
 }
 
-message IncreaseRequest {
-    uint64 value = 1;
+enum AccountType {
+  Unknown = 0;
+  Asset = 1;
+  Liability = 2;
+  Capital = 3;
+  Income = 4;
+  CostOfGoodsSold = 5;
+  Expense = 6;
 }
 
-message IncreaseResponse {
+message Balance {
+  uint64 version = 1;  // since v1
+  uint64 value = 2;  // since v1
+}
+
+message Account {
+  uint64 version = 1;  // since v1
+  AccountType type = 2;  // since v1
+  uint64 nominal_code = 3;  // since v1
+  string name = 4;  // since v1
+  string desc = 5;  // since v1
+  uint64 currency_code = 6;  // since v1
+  Balance balance = 7;  // since v1
+}
+
+message CreateAccount {
+  message Request {
+    Account account = 1;
+  }
+
+  message Response {
     uint32 code = 1;
     string message = 2;
     string reserved = 3; // leaderHint if the persistence is backed by Raft
+  }
 }

@@ -23,13 +23,12 @@ set(APP_LEDGER_AUTOGEN
         should_be_generated/app/RequestReceiver.cpp
         should_be_generated/domain/CommandDecoderImpl.cpp
         should_be_generated/domain/EventDecoderImpl.cpp
-        should_be_generated/domain/IncreaseCommand.cpp
-        should_be_generated/domain/ProcessedEvent.cpp)
+        should_be_generated/domain/commands/CreateAccountCommand.cpp
+        should_be_generated/domain/events/AccountCreatedEvent.cpp)
 
 set(APP_LEDGER_SRC
-        v2/RocksDBBackedAppStateMachine.cpp
-        execution/IncreaseApplier.cpp
-        execution/IncreaseHandler.cpp)
+        v2/AppStateMachine.cpp
+        v2/RocksDBBackedAppStateMachine.cpp)
 
 #################################################################################################
 #

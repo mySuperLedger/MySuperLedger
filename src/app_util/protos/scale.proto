@@ -19,9 +19,8 @@ message Scale {
     ResponseHeader header = 1;
     uint64 tagCommitIndex = 2;
   }
-
-
 }
+
 service ScaleService {
   rpc scale(Scale.SplitRequest) returns (Scale.SplitResponse) {}
 }

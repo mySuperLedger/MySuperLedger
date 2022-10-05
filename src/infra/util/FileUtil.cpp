@@ -106,11 +106,7 @@ void FileUtil::setFileContentWithSync(const std::string &fileName,
   file.flush();
 
   /// sync to disk
-#ifdef MAC_OS
-  assert(0 == ::fsync(file->handle()));
-#else
   assert(0 == ::fdatasync(file->handle()));
-#endif
   assert(0 == ::rename(tmpFileName.c_str(), fileName.c_str()));
 }
 
@@ -288,16 +284,6 @@ uint64_t FileUtil::readUint64FromFile(std::ifstream &ifs) {
  * @param fileName name of the file
  */
 void FileUtil::syncFile(const std::string &fileName) {
-#ifdef MAC_OS
-  int fd = ::open(fileName.c_str(), O_RDONLY);
-  assert(fd != -1);
-
-  /// sync to disk
-  ::fsync(fd);
-
-  /// do not forget to close the fd
-  ::close(fd);
-#else
   int fd = ::open64(fileName.c_str(), O_RDONLY);
     assert(fd != -1);
 
@@ -306,7 +292,6 @@ void FileUtil::syncFile(const std::string &fileName) {
 
     /// do not forget to close the fd
     ::close(fd);
-#endif
 }
 
 void FileUtil::checkFileState(std::ifstream &ifs) {

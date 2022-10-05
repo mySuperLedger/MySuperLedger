@@ -12,41 +12,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
 
-#include "../../../infra/es/Command.h"
-#include "../../../infra/es/ProcessCommandStateMachine.h"
-#include "../../generated/grpc/ledger.pb.h"
+#include "../../../../infra/es/Command.h"
+#include "../../../../infra/es/ProcessCommandStateMachine.h"
+#include "../../../generated/grpc/ledger.pb.h"
 
 namespace gringofts {
 namespace ledger {
 
-/**
- * This is the command for execution plan.  For now, it support protobuf
- * for journal and account request. But for execution plans which has predicates,
- * the protobuf does not work yet.
- */
-class IncreaseCommand : public Command {
+class CreateAccountCommand : public Command {
  public:
-  IncreaseCommand(TimestampInNanos, const protos::IncreaseRequest &);
+  CreateAccountCommand(TimestampInNanos, const protos::CreateAccount::Request &origRequest);
 
-  IncreaseCommand(TimestampInNanos, const std::string &);
+  CreateAccountCommand(TimestampInNanos, const std::string &commandStr);
 
   std::string encodeToString() const override {
-    return mRequest.SerializeAsString();
+    return mOrigRequest.SerializeAsString();
   }
 
   void decodeFromString(std::string_view encodedString) override {
-    mRequest.ParseFromString(std::string(encodedString));
-  }
-
-  int getValue() const {
-    return mRequest.value();
-  }
-
-  protos::IncreaseRequest getRequest() const {
-    return mRequest;
+    mOrigRequest.ParseFromString(std::string(encodedString));
   }
 
   std::string verifyCommand() const override {
@@ -57,10 +44,10 @@ class IncreaseCommand : public Command {
   void onPersisted(const std::string &message) override;
   void onPersistFailed(uint32_t code, const std::string &errorMessage, std::optional<uint64_t> reserved) override;
 
-  protos::IncreaseRequest mRequest;
+  protos::CreateAccount::Request mOrigRequest;
 };
 
 }  ///  namespace ledger
 }  ///  namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_INCREASECOMMAND_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_

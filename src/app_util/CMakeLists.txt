@@ -30,7 +30,6 @@ add_dependencies(gringofts_scale_proto_library gringofts_route_proto_library)
 # Source files
 set(GRINGOFTS_APP_UTIL_SRC
         AppInfo.cpp
-        control/split/ScaleReceiver.cpp
         control/split/SplitCommand.cpp
         control/split/SplitEvent.cpp
         control/CtrlState.cpp

@@ -27,7 +27,7 @@ class HttpCode {
   static constexpr int CONFLICT = 409;
 
   static constexpr int SERVICE_UNAVAILABLE = 503;
-  static constexpr int INTERNL_SERVER_ERROR = 500;
+  static constexpr int INTERNAL_SERVER_ERROR = 500;
 };
 
 

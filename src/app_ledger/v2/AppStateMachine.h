@@ -38,6 +38,14 @@ class AppStateMachine : public ledger::AppStateMachine {
   bool hasSameState(const StateMachine &) const override { return true; }
 
  protected:
+  /// command processors
+  ProcessHint process(const CreateAccountCommand &command,
+                      std::vector<std::shared_ptr<Event>> *events) const override;
+
+  /// event appliers
+  StateMachine &apply(const AccountCreatedEvent &event) override;
+
+ protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM
   uint64_t mValue = 0;
 };

@@ -12,39 +12,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_
 
-#include "../../../infra/es/Event.h"
-
-#include "../../generated/grpc/ledger.pb.h"
-#include "common_types.h"
+#include "../../../../infra/es/Event.h"
+#include "../../../generated/grpc/ledger.pb.h"
+#include "../Account.h"
+#include "../common_types.h"
 
 namespace gringofts {
 namespace ledger {
 
-/**
- * This event is created to record journal line creation.
- */
-class ProcessedEvent : public Event {
+class AccountCreatedEvent : public Event {
  public:
-  ProcessedEvent(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request);
+  explicit AccountCreatedEvent(TimestampInNanos createdTimeInNanos, const Account &account);
 
-  ProcessedEvent(TimestampInNanos createdTimeInNanos, std::string_view journalString);
+  AccountCreatedEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr);
 
   std::string encodeToString() const override;
 
   void decodeFromString(std::string_view payload) override;
 
-  int getValue() const {
-    return mRequest.value();
-  }
-
  private:
-  protos::IncreaseRequest mRequest;
+  uint64_t mVersion;
+  Account mAccount;
 };
 
 }  /// namespace ledger
 }  /// namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_PROCESSEDEVENT_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_

@@ -12,40 +12,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#include "IncreaseCommand.h"
+#include "CreateAccountCommand.h"
 
-#include "common_types.h"
+#include "../common_types.h"
 
 namespace gringofts {
 namespace ledger {
 
-IncreaseCommand::IncreaseCommand(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request)
-    : Command(INCREASE_COMMAND, createdTimeInNanos), mRequest(request) {
+CreateAccountCommand::CreateAccountCommand(TimestampInNanos createdTimeInNanos,
+                                           const protos::CreateAccount::Request &origRequest)
+    : Command(CREATE_ACCOUNT_COMMAND, createdTimeInNanos), mOrigRequest(origRequest) {
 }
 
-IncreaseCommand::IncreaseCommand(TimestampInNanos createdTimeInNanos, const std::string &requestStr)
-    : Command(INCREASE_COMMAND, createdTimeInNanos) {
-  decodeFromString(requestStr);
+CreateAccountCommand::CreateAccountCommand(TimestampInNanos createdTimeInNanos, const std::string &commandStr)
+    : Command(CREATE_ACCOUNT_COMMAND, createdTimeInNanos) {
+  decodeFromString(commandStr);
 }
 
-void IncreaseCommand::onPersisted(const std::string &message) {
+void CreateAccountCommand::onPersisted(const std::string &message) {
   auto *callData = getRequestHandle();
-  if (callData == nullptr) {
-//    SPDLOG_WARN("This command does not have request attached.");
-    return;
-  }
+  if (callData == nullptr) return;
+
   callData->fillResultAndReply(200, message, std::nullopt);
 }
 
-void IncreaseCommand::onPersistFailed(
+void CreateAccountCommand::onPersistFailed(
     uint32_t code,
     const std::string &errorMessage,
     std::optional<uint64_t> reserved) {
   auto *callData = getRequestHandle();
-  if (callData == nullptr) {
-//    SPDLOG_WARN("This command does not have request attached.");
-    return;
-  }
+  if (callData == nullptr) return;
+
   callData->fillResultAndReply(code, errorMessage, reserved);
 }
 
