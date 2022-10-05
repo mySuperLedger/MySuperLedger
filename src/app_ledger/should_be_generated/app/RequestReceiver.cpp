@@ -14,42 +14,102 @@ limitations under the License.
 
 #include "RequestReceiver.h"
 
-namespace gringofts::ledger {
+#include "calldatas/RequestCallData.h"
 
-grpc::Status CallDataHandler::buildResponse(const IncreaseCommand &command, uint32_t code,
-                                            const std::string &message,
-                                            std::optional<uint64_t> leaderId,
-                                            IncreaseResponse *response) {
-  response->set_code(code);
-  response->set_message(message);
+namespace gringofts {
+namespace ledger {
 
-  if (code == 301 && leaderId) {
-    response->set_reserved(std::to_string(*leaderId));
+RequestReceiver::RequestReceiver(const INIReader &reader,
+                                 uint32_t port,
+                                 BlockingQueue<std::shared_ptr<Command>> &commandQueue)  // NOLINT(runtime/references)
+    : mCommandQueue(commandQueue) {
+  mIpPort = "0.0.0.0:" + std::to_string(port);
+  assert(mIpPort != "UNKNOWN");
+  mTlsConfOpt = TlsUtil::parseTlsConf(reader, "tls");
+}
+
+void RequestReceiver::startListen() {
+  if (mIsShutdown) {
+    SPDLOG_WARN("Receiver is already down. Will not run again.");
+    return;
   }
 
-  if (!(code == 200 || code == 201 || code == 301 || code == 400 || code == 503)) {
-    response->set_code(503);
+  std::string server_address(mIpPort);
+
+  ::grpc::ServerBuilder builder;
+  // Listen on the given address without any authentication mechanism.
+  builder.AddListeningPort(server_address,
+                           TlsUtil::buildServerCredentials(mTlsConfOpt));
+  // Register "service" as the instance through which we'll communicate with
+  // clients. In this case it corresponds to an *synchronous* service.
+  builder.RegisterService(&mService);
+
+  for (uint64_t i = 0; i < mConcurrency; ++i) {
+    mCompletionQueues.emplace_back(builder.AddCompletionQueue());
   }
 
-  return grpc::Status::OK;
+  mServer = builder.BuildAndStart();
+  SPDLOG_INFO("Server listening on {}", server_address);
+
+  // Spawn a new CallData instance to serve new clients.
+  for (uint64_t i = 0; i < mPreSpawn; ++i) {
+    for (uint64_t j = 0; j < mConcurrency; ++j) {
+      new CreateAccountCallData(&mService, mCompletionQueues[j].get(), mCommandQueue);
+    }
+  }
 }
 
-void CallDataHandler::request(LedgerService::AsyncService *service,
-                              ::grpc::ServerContext *context,
-                              IncreaseRequest *request,
-                              ::grpc::ServerAsyncResponseWriter<IncreaseResponse> *responser,
-                              ::grpc::ServerCompletionQueue *completionQueue,
-                              void *tag) {
-  service->RequestExecute(context, request, responser, completionQueue, completionQueue, tag);
+void RequestReceiver::start() {
+  startListen();
+  // start receive threads
+  for (uint64_t i = 0; i < mConcurrency; ++i) {
+    mRcvThreads.emplace_back([this, i]() {
+      std::string threadName = (std::string("RcvThread_") + std::to_string(i));
+      pthread_setname_np(pthread_self(), threadName.c_str());
+      handleRpcs(i);
+    });
+  }
 }
 
-std::shared_ptr<IncreaseCommand> CallDataHandler::buildCommand(
-    const IncreaseRequest &request, TimestampInNanos createdTimeInNanos) {
-  auto command = std::make_shared<IncreaseCommand>(createdTimeInNanos, request);
-  command->setCreatorId(app::AppInfo::subsystemId());
-  command->setGroupId(app::AppInfo::groupId());
-  command->setGroupVersion(app::AppInfo::groupVersion());
-  return command;
+void RequestReceiver::stop() {
+  if (mIsShutdown) {
+    SPDLOG_INFO("Server is already down");
+  } else {
+    mIsShutdown = true;
+    mServer->Shutdown();
+    for (uint64_t i = 0; i < mConcurrency; ++i) {
+      mCompletionQueues[i]->Shutdown();
+      /// drain completion queue.
+      void *tag;
+      bool ok;
+      while (mCompletionQueues[i]->Next(&tag, &ok)) { ; }
+    }
+    // join threads
+    for (uint64_t i = 0; i < mConcurrency; ++i) {
+      if (mRcvThreads[i].joinable()) {
+        mRcvThreads[i].join();
+      }
+    }
+  }
 }
 
-}  // namespace gringofts::ledger
+void RequestReceiver::handleRpcs(uint64_t i) {
+  void *tag;  // uniquely identifies a request.
+  bool ok;
+  // Block waiting to read the next event from the completion queue. The
+  // event is uniquely identified by its tag, which in this case is the
+  // memory address of a CallData instance.
+  // The return value of Next should always be checked. This return value
+  // tells us whether there is any kind of event or cq_ is shutting down.
+  while (mCompletionQueues[i]->Next(&tag, &ok)) {
+    auto *callData = static_cast<RequestHandle *>(tag);
+    if (ok) {
+      callData->proceed();
+    } else if (!mIsShutdown) {
+      callData->failOver();
+    }
+  }
+}
+
+}  // namespace ledger
+}  // namespace gringofts

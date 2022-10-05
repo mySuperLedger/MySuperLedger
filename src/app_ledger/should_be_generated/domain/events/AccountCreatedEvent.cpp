@@ -12,28 +12,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#include "IncreaseHandler.h"
+#include "AccountCreatedEvent.h"
 
 #include <spdlog/spdlog.h>
-
-#include "../../app_util/AppInfo.h"
-#include "../AppStateMachine.h"
 
 namespace gringofts {
 namespace ledger {
 
-ProcessHint IncreaseHandler::process(const AppStateMachine &appStateMachine,
-                                     const IncreaseCommand &increaseCommand,
-                                     std::vector<std::shared_ptr<Event>> *events) {
-  events->push_back(std::make_shared<ProcessedEvent>(TimeUtil::currentTimeInNanos(), increaseCommand.getRequest()));
+AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, const Account &account)
+    : Event(ACCOUNT_CREATED_EVENT, createdTimeInNanos) {
+  mAccount = account;
+}
 
-  for (auto &eventPtr : *events) {
-    eventPtr->setCreatorId(app::AppInfo::subsystemId());
-    eventPtr->setGroupId(app::AppInfo::groupId());
-    eventPtr->setGroupVersion(app::AppInfo::groupVersion());
-  }
+AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr)
+    : Event(ACCOUNT_CREATED_EVENT, createdTimeInNanos) {
+  /// TODO: init protos::Account from eventStr
+  protos::Account account;
+  mAccount.initWith(account);
+  decodeFromString(eventStr);
+}
 
-  return ProcessHint{200, "Success"};
+std::string AccountCreatedEvent::encodeToString() const {
+  return "";
+}
+
+void AccountCreatedEvent::decodeFromString(std::string_view payload) {
 }
 
 }  /// namespace ledger

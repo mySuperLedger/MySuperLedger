@@ -39,9 +39,9 @@ using ::grpc::Channel;
 using ::grpc::ClientContext;
 
 // event types
-const Type PROCESSED_EVENT = 6;
+const Type ACCOUNT_CREATED_EVENT = 51;
 // command types
-const Type INCREASE_COMMAND = 0;
+const Type CREATE_ACCOUNT_COMMAND = 1;
 
 namespace protobuf = ::google::protobuf;
 

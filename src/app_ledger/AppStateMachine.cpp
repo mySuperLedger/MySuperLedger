@@ -18,13 +18,13 @@ limitations under the License.
 namespace gringofts::ledger {
 
 AppStateMachine::AppStateMachine() {
-  registerCommandProcessor(INCREASE_COMMAND, [this](const gringofts::Command &command,
-                                                    std::vector<std::shared_ptr<gringofts::Event>> *events) {
-    return this->process(dynamic_cast<const IncreaseCommand&>(command), events);
+  registerCommandProcessor(CREATE_ACCOUNT_COMMAND, [this](const gringofts::Command &command,
+                                                          std::vector<std::shared_ptr<gringofts::Event>> *events) {
+    return this->process(dynamic_cast<const CreateAccountCommand &>(command), events);
   });
 
-  registerEventApplier(PROCESSED_EVENT, [this](const gringofts::Event &event) -> gringofts::StateMachine & {
-    return this->apply(dynamic_cast<const ProcessedEvent&>(event));
+  registerEventApplier(ACCOUNT_CREATED_EVENT, [this](const gringofts::Event &event) -> gringofts::StateMachine & {
+    return this->apply(dynamic_cast<const AccountCreatedEvent &>(event));
   });
 }
 

@@ -12,28 +12,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#include "ProcessedEvent.h"
-
-#include <spdlog/spdlog.h>
+#include "AppStateMachine.h"
 
 namespace gringofts {
 namespace ledger {
+namespace v2 {
 
-ProcessedEvent::ProcessedEvent(TimestampInNanos createdTimeInNanos, const protos::IncreaseRequest &request)
-    : Event(PROCESSED_EVENT, createdTimeInNanos), mRequest(std::move(request)) {}
-
-ProcessedEvent::ProcessedEvent(TimestampInNanos createdTimeInNanos, std::string_view requestString)
-    : Event(PROCESSED_EVENT, createdTimeInNanos) {
-  decodeFromString(requestString);
+ProcessHint AppStateMachine::process(const CreateAccountCommand &command,
+                                     std::vector<std::shared_ptr<Event>> *events) const {
+  ProcessHint hint;
+  return hint;
 }
 
-std::string ProcessedEvent::encodeToString() const {
-  return mRequest.SerializeAsString();
+StateMachine &AppStateMachine::apply(const gringofts::ledger::AccountCreatedEvent &event) {
+  return *this;
 }
 
-void ProcessedEvent::decodeFromString(std::string_view payload) {
-  mRequest.ParseFromString(std::string(payload));
-}
-
-}  /// namespace ledger
-}  /// namespace gringofts
+}  // namespace v2
+}  // namespace ledger
+}  // namespace gringofts

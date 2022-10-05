@@ -22,18 +22,10 @@ namespace gringofts {
 template<class T>
 using BlockingQueue = MpscDoubleBufferQueue<T>;
 
-#ifdef MAC_OS
-using Id = u_long;
-#else
 using Id = ulong;
-#endif
-using Type = ::std::int8_t;
+using Type = ::std::int64_t;
 
-#ifdef MAC_OS
-#define pthread_setname_np(_self_, _name_) ::pthread_setname_np(_name_);
-#else
 #define pthread_setname_np(_self_, _name_) ::pthread_setname_np(_self_, _name_);
-#endif
 
 /**
  * Determine how application will be deployed, it also affects the threading model and thread behavior.

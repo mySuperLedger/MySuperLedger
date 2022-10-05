@@ -22,7 +22,6 @@ limitations under the License.
 
 namespace gringofts {
 namespace ledger {
-using protos::IncreaseRequest;
 
 App::App(const char *configPath) : mIsShutdown(false) {
   SPDLOG_INFO("current working dir: {}", FileUtil::currentWorkingDir());
@@ -194,7 +193,7 @@ void App::startPersistLoop() {
 void App::startBenchmark() {
   mBenchmarkThread = std::thread([this]() {
     pthread_setname_np(pthread_self(), "Benchmark");
-    IncreaseRequest request;
+    protos::CreateAccount::Request request;
     unsigned int seed = 1234;
     uint64_t cnt = 0;
     auto startTimeInNanos = TimeUtil::currentTimeInNanos();
@@ -205,9 +204,16 @@ void App::startBenchmark() {
           continue;
         }
         cnt++;
-        request.set_value(rand_r(&seed));
+        request.mutable_account()->set_version(1);
+        request.mutable_account()->set_type(protos::AccountType::Asset);
+        request.mutable_account()->set_nominal_code(1000);
+        request.mutable_account()->set_name("creditCard");
+        request.mutable_account()->set_desc("Shanghai credit card");
+        request.mutable_account()->set_currency_code(156);  // CNY
+        request.mutable_account()->mutable_balance()->set_version(1);
+        request.mutable_account()->mutable_balance()->set_value(100);
         auto createdTimeInNanos = TimeUtil::currentTimeInNanos();
-        auto command = std::make_shared<IncreaseCommand>(createdTimeInNanos, request);
+        auto command = std::make_shared<CreateAccountCommand>(createdTimeInNanos, request);
         command->setCreatorId(app::AppInfo::subsystemId());
         command->setGroupId(app::AppInfo::groupId());
         command->setGroupVersion(app::AppInfo::groupVersion());
