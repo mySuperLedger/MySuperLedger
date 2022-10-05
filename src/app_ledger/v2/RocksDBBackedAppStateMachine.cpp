@@ -67,17 +67,39 @@ void RocksDBBackedAppStateMachine::commit(uint64_t appliedIndex) {
 
 void RocksDBBackedAppStateMachine::openRocksDB(const std::string &walDir,
                                                const std::string &dbDir,
-                                               std::shared_ptr<rocksdb::DB> *dbPtr) {
+                                               std::shared_ptr<rocksdb::DB> *dbPtr,
+                                               std::vector<rocksdb::ColumnFamilyHandle *> *columnFamilyHandles) {
   /// options
   rocksdb::Options options;
 
   options.IncreaseParallelism();
   options.create_if_missing = true;
+  options.create_missing_column_families = true;
   options.wal_dir = walDir;
+
+  /// column family options
+  rocksdb::ColumnFamilyOptions columnFamilyOptions;
+
+  /// default CompactionStyle for column family is kCompactionStyleLevel
+  columnFamilyOptions.OptimizeLevelStyleCompaction();
+
+  rocksdb::ColumnFamilyOptions smallColumnFamilyOptions;
+  smallColumnFamilyOptions.OptimizeLevelStyleCompaction();
+  smallColumnFamilyOptions.write_buffer_size = 32 << 20;
+  smallColumnFamilyOptions.max_write_buffer_number = 2;
+
+  rocksdb::ColumnFamilyOptions mediumColumnFamilyOptions;
+  mediumColumnFamilyOptions.OptimizeLevelStyleCompaction();
+  mediumColumnFamilyOptions.write_buffer_size = 64 << 20;
+  mediumColumnFamilyOptions.max_write_buffer_number = 4;
+
+  std::vector<rocksdb::ColumnFamilyDescriptor> columnFamilyDescriptors;
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kDefault, smallColumnFamilyOptions);
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kChartOfAccounts, columnFamilyOptions);
 
   /// open DB
   rocksdb::DB *db;
-  auto status = rocksdb::DB::Open(options, dbDir, &db);
+  auto status = rocksdb::DB::Open(options, dbDir, columnFamilyDescriptors, columnFamilyHandles, &db);
 
   assert(status.ok());
   (*dbPtr).reset(db);
@@ -116,6 +138,7 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
 
   /// load last applied index
   auto status = mRocksDB->Get(rocksdb::ReadOptions(),
+                              mColumnFamilyHandles[RocksDBConf::DEFAULT],
                               RocksDBConf::kLastAppliedIndexKey, &value);
   if (status.ok()) {
     mLastFlushedIndex = std::stoull(value);
@@ -127,7 +150,9 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
   }
 
   /// load value
-  status = mRocksDB->Get(rocksdb::ReadOptions(), RocksDBConf::kValueKey, &value);
+  status = mRocksDB->Get(rocksdb::ReadOptions(),
+                         mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                         RocksDBConf::kValueKey, &value);
   if (status.ok()) {
     mValue = std::stoull(value);
   } else if (status.IsNotFound()) {

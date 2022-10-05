@@ -29,7 +29,8 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   RocksDBBackedAppStateMachine(const std::string &walDir, const std::string &dbDir) {
     openRocksDB(walDir,
                 dbDir,
-                &mRocksDB);
+                &mRocksDB,
+                &mColumnFamilyHandles);
   }
 
   ~RocksDBBackedAppStateMachine() override { closeRocksDB(&mRocksDB); }
@@ -62,7 +63,8 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   /// open RocksDB
   void openRocksDB(const std::string &walDir,
                    const std::string &dbDir,
-                   std::shared_ptr<rocksdb::DB> *dbPtr);
+                   std::shared_ptr<rocksdb::DB> *dbPtr,
+                   std::vector<rocksdb::ColumnFamilyHandle *> *columnFamilyHandles);
 
   /// close RocksDB
   void closeRocksDB(std::shared_ptr<rocksdb::DB> *dbPtr);
@@ -75,6 +77,9 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
 
   /// the max num of bundles batched in write batch
   const uint64_t mMaxBatchSize = 500;
+
+  /// column family handles
+  std::vector<rocksdb::ColumnFamilyHandle *> mColumnFamilyHandles;
 
   std::shared_ptr<rocksdb::DB> mRocksDB;
   rocksdb::WriteBatch mWriteBatch;

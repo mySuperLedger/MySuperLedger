@@ -24,9 +24,24 @@ namespace v2 {
 class AppStateMachine : public ledger::AppStateMachine {
  public:
   struct RocksDBConf {
+    /**
+     * You should obey following order when preparing columnFamilyDescriptors,
+     * so that you can manipulate mColumnFamilyHandles correctly.
+     */
+    enum ColumnFamilyIndices {
+      DEFAULT = 0,
+      CHART_OF_ACCOUNTS = 1,
+    };
+
     /// RocksDB key
     static constexpr const char *kLastAppliedIndexKey = "last_applied_index";
     static constexpr const char *kValueKey = "value";
+
+    /**
+     * ColumnFamily Names
+     */
+    static constexpr const char *kDefault = "default";
+    static constexpr const char *kChartOfAccounts = "chart_of_accounts";
   };
 
   /**
@@ -48,6 +63,7 @@ class AppStateMachine : public ledger::AppStateMachine {
  protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM
   uint64_t mValue = 0;
+  std::unordered_map<uint64_t, Account> mCoA;  // Chart of Accounts
 };
 
 }  /// namespace v2
