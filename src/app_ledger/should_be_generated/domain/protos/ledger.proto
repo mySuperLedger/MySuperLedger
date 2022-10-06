@@ -42,4 +42,9 @@ message CreateAccount {
     string message = 2;
     string reserved = 3; // leaderHint if the persistence is backed by Raft
   }
+
+  message CreatedEvent {
+    uint64 version = 1;
+    Account account = 2;
+  }
 }

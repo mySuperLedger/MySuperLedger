@@ -26,17 +26,41 @@ AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, co
 
 AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr)
     : Event(ACCOUNT_CREATED_EVENT, createdTimeInNanos) {
-  /// TODO: init protos::Account from eventStr
-  protos::Account account;
-  mAccount.initWith(account);
   decodeFromString(eventStr);
 }
 
 std::string AccountCreatedEvent::encodeToString() const {
-  return "";
+  protos::CreateAccount::CreatedEvent eventProto;
+  eventProto.set_version(mVersion);
+  switch (mVersion) {
+    case 1: {
+      mAccount.encodeTo(*eventProto.mutable_account());
+      break;
+    }
+    default: {
+      SPDLOG_ERROR("Cannot recognize this version {}, exiting now", mVersion);
+      exit(1);
+    }
+  }
+
+  return eventProto.SerializeAsString();
 }
 
 void AccountCreatedEvent::decodeFromString(std::string_view payload) {
+  protos::CreateAccount::CreatedEvent eventProto;
+  eventProto.ParseFromString(std::string(payload));
+  mVersion = eventProto.version();
+  assert(mVersion > 0);
+  switch (mVersion) {
+    case 1: {
+      mAccount.initWith(eventProto.account());
+      break;
+    }
+    default: {
+      SPDLOG_ERROR("Cannot recognize this version {}, exiting now", mVersion);
+      exit(1);
+    }
+  }
 }
 
 }  /// namespace ledger

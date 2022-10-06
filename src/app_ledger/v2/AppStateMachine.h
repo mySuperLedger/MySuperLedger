@@ -47,10 +47,33 @@ class AppStateMachine : public ledger::AppStateMachine {
   /**
    * integration
    */
-  void clearState() override { mValue = 0; }
+  void clearState() override {
+    mValue = 0;
+    mCoA.clear();
+  }
 
   /// unit test
-  bool hasSameState(const StateMachine &) const override { return true; }
+  bool hasSameState(const StateMachine &anotherStateMachine) const override {
+    const auto &another = dynamic_cast<const v2::AppStateMachine &>(anotherStateMachine);
+    /// compare CoA
+    if (mCoA.size() != another.mCoA.size()) {
+      SPDLOG_WARN("CoA has different size. {} vs {}", mCoA.size(), another.mCoA.size());
+      return false;
+    }
+    for (const auto &[k, v] : another.mCoA) {
+      const auto &iter = mCoA.find(k);
+      if (iter == mCoA.cend()) {
+        SPDLOG_WARN("entry with key {} not found in map", k);
+        return false;
+      }
+      if (!v.isSame(iter->second)) {
+        SPDLOG_WARN("key {} have different values.", k);
+        return false;
+      }
+    }
+
+    return true;
+  }
 
  protected:
   /// command processors
@@ -59,6 +82,9 @@ class AppStateMachine : public ledger::AppStateMachine {
 
   /// event appliers
   StateMachine &apply(const AccountCreatedEvent &event) override;
+
+  /// callbacks
+  virtual void onAccountInserted(const Account &account) {}
 
  protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM

@@ -56,6 +56,68 @@ class Account {
     }
   }
 
+  void encodeTo(protos::Account &account) const {  // NOLINT[runtime/references]
+    account.set_version(mVersion);
+    switch (mVersion) {
+      case 1: {
+        account.set_type(toType());
+        mBalance.encodeTo(*account.mutable_balance());
+        account.set_nominal_code(mNominalCode);
+        account.set_name(mName);
+        account.set_desc(mDesc);
+        account.set_currency_code(mCurrencyCode);
+        break;
+      }
+      default: {
+        SPDLOG_ERROR("Cannot recognize this version {}, exiting now", mVersion);
+        exit(1);
+      }
+    }
+  }
+
+  uint64_t nominalCode() const {
+    return mNominalCode;
+  }
+
+  bool isSame(const Account &another) const {
+    if (mVersion != another.mVersion) {
+      SPDLOG_WARN("version is not the same, {} vs {}", mVersion, another.mVersion);
+      return false;
+    }
+
+    if (mVersion == 1) {
+      if (mAccountType != another.mAccountType) {
+        SPDLOG_WARN("account type is not the same, {} vs {}", mAccountType, another.mAccountType);
+        return false;
+      }
+      if (!mBalance.isSame(another.mBalance)) {
+        SPDLOG_WARN("balance is not the same");
+        return false;
+      }
+      if (mNominalCode != another.mNominalCode) {
+        SPDLOG_WARN("nominal code is not the same, {} vs {}", mNominalCode, another.mNominalCode);
+        return false;
+      }
+      if (mName != another.mName) {
+        SPDLOG_WARN("name is not the same, {} vs {}", mName, another.mName);
+        return false;
+      }
+      if (mDesc != another.mDesc) {
+        SPDLOG_WARN("desc is not the same, {} vs {}", mDesc, another.mDesc);
+        return false;
+      }
+      if (mCurrencyCode != another.mCurrencyCode) {
+        SPDLOG_WARN("currency code is not the same, {} vs {}", mCurrencyCode, another.mCurrencyCode);
+        return false;
+      }
+    } else {
+      SPDLOG_ERROR("Cannot recognize this version {}", mVersion);
+      return false;
+    }
+
+    return true;
+  }
+
  private:
   AccountType typeOf(protos::AccountType accountType) const {
     switch (accountType) {
@@ -68,6 +130,22 @@ class Account {
       case protos::AccountType::Expense:return AccountType::Expense;
       default: {
         SPDLOG_ERROR("Cannot recognize this type {}, exiting now", accountType);
+        exit(1);
+      }
+    }
+  }
+
+  protos::AccountType toType() const {
+    switch (mAccountType) {
+      case AccountType::Unknown: return protos::AccountType::Unknown;
+      case AccountType::Asset: return protos::AccountType::Asset;
+      case AccountType::Liability:return protos::AccountType::Liability;
+      case AccountType::Capital:return protos::AccountType::Capital;
+      case AccountType::Income:return protos::AccountType::Income;
+      case AccountType::CostOfGoodsSold:return protos::AccountType::CostOfGoodsSold;
+      case AccountType::Expense:return protos::AccountType::Expense;
+      default: {
+        SPDLOG_ERROR("Cannot recognize this type {}, exiting now", mAccountType);
         exit(1);
       }
     }

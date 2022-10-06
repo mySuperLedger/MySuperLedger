@@ -23,7 +23,8 @@ void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
   mValue = value;
 
   /// save in RocksDB
-  auto status = mWriteBatch.Put(RocksDBConf::kValueKey, std::to_string(value));
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                                RocksDBConf::kValueKey, std::to_string(value));
   if (!status.ok()) {
     SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
@@ -47,7 +48,8 @@ uint64_t RocksDBBackedAppStateMachine::recoverSelf() {
 }
 
 void RocksDBBackedAppStateMachine::commit(uint64_t appliedIndex) {
-  auto status = mWriteBatch.Put(RocksDBConf::kLastAppliedIndexKey, std::to_string(appliedIndex));
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                                RocksDBConf::kLastAppliedIndexKey, std::to_string(appliedIndex));
   if (!status.ok()) {
     SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
@@ -159,6 +161,39 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
     mValue = 0;
   } else {
     SPDLOG_ERROR("Error in RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+
+  /// load CoA
+  rocksdb::Iterator *accountsIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
+                                                          mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS]);
+  for (accountsIter->SeekToFirst(); accountsIter->Valid(); accountsIter->Next()) {
+    const auto &key = accountsIter->key();
+    const auto &val = accountsIter->value();
+    protos::Account accountProto;
+    accountProto.ParseFromString(val.ToString());
+    Account account;
+    account.initWith(accountProto);
+    auto nominalCode = account.nominalCode();
+    assert(nominalCode == std::stoull(key.ToString()));
+    assert(mCoA.find(nominalCode) == mCoA.end());
+    mCoA[nominalCode] = account;
+  }
+  assert(accountsIter->status().ok());
+  delete accountsIter;
+}
+
+void RocksDBBackedAppStateMachine::onAccountInserted(const gringofts::ledger::Account &account) {
+  rocksdb::ReadOptions readOptions;
+
+  auto nominalCode = account.nominalCode();
+  protos::Account accountProto;
+  account.encodeTo(accountProto);
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS],
+                                std::to_string(nominalCode),
+                                rocksdb::Slice(accountProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
   }
 }

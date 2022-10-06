@@ -58,6 +58,10 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   }
 
  private:
+  /// callbacks
+  void onAccountInserted(const Account &account) override;
+
+ private:
   friend class MemoryBackedAppStateMachine;
 
   /// open RocksDB

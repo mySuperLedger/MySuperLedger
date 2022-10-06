@@ -22,11 +22,21 @@ namespace ledger {
 CreateAccountCommand::CreateAccountCommand(TimestampInNanos createdTimeInNanos,
                                            const protos::CreateAccount::Request &origRequest)
     : Command(CREATE_ACCOUNT_COMMAND, createdTimeInNanos), mOrigRequest(origRequest) {
+  tryInitAccount();
 }
 
 CreateAccountCommand::CreateAccountCommand(TimestampInNanos createdTimeInNanos, const std::string &commandStr)
     : Command(CREATE_ACCOUNT_COMMAND, createdTimeInNanos) {
   decodeFromString(commandStr);
+  tryInitAccount();
+}
+
+void CreateAccountCommand::tryInitAccount() {
+  if (kVerifiedSuccess == verifyCommand()) {
+    Account account;
+    account.initWith(mOrigRequest.account());
+    mAccountOpt = std::make_optional<Account>(account);
+  }
 }
 
 void CreateAccountCommand::onPersisted(const std::string &message) {

@@ -18,6 +18,7 @@ limitations under the License.
 #include "../../../../infra/es/Command.h"
 #include "../../../../infra/es/ProcessCommandStateMachine.h"
 #include "../../../generated/grpc/ledger.pb.h"
+#include "../Account.h"
 
 namespace gringofts {
 namespace ledger {
@@ -40,11 +41,17 @@ class CreateAccountCommand : public Command {
     return kVerifiedSuccess;
   }
 
+  const std::optional<Account> &accountOpt() const {
+    return mAccountOpt;
+  }
+
  private:
+  void tryInitAccount();
   void onPersisted(const std::string &message) override;
   void onPersistFailed(uint32_t code, const std::string &errorMessage, std::optional<uint64_t> reserved) override;
 
   protos::CreateAccount::Request mOrigRequest;
+  std::optional<Account> mAccountOpt;
 };
 
 }  ///  namespace ledger

@@ -33,8 +33,12 @@ class AccountCreatedEvent : public Event {
 
   void decodeFromString(std::string_view payload) override;
 
+  const Account &account() const {
+    return mAccount;
+  }
+
  private:
-  uint64_t mVersion;
+  uint64_t mVersion = 1;
   Account mAccount;
 };
 
