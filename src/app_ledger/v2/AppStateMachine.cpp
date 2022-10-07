@@ -30,7 +30,7 @@ ProcessHint AppStateMachine::process(const CreateAccountCommand &command,
   if (accountOpt) {
     const auto &account = *accountOpt;
     if (mCoA.find(account.nominalCode()) != mCoA.end()) {
-      hint.mCode = BusinessCode::ALREADY_EXISTS;
+      hint.mCode = BusinessCode::ACCOUNT_ALREADY_EXISTS;
       hint.mMessage = "Account already exists";
     } else {
       auto now = TimeUtil::currentTimeInNanos();

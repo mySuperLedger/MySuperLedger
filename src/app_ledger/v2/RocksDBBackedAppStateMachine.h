@@ -41,10 +41,11 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   uint64_t getValue() const override;
   void setValue(uint64_t value) override;
 
-  /**
-   * integration part
-   */
+  /// integration part
   void swapState(StateMachine *anotherStateMachine) override { assert(0); }
+
+  /// write WriteBatch to RocksDB synchronously
+  void flushToRocksDB();
 
   /// invoked after swapState() is called, return lastFlushedIndex
   uint64_t recoverSelf();
@@ -72,9 +73,6 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
 
   /// close RocksDB
   void closeRocksDB(std::shared_ptr<rocksdb::DB> *dbPtr);
-
-  /// write WriteBatch to RocksDB synchronously
-  void flushToRocksDB();
 
   /// read value/lastAppliedIndex from RocksDB
   void loadFromRocksDB();

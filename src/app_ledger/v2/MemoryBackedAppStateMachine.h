@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <optional>
 
+#include "../../infra/util/PMRContainerFactory.h"
 #include "AppStateMachine.h"
 #include "RocksDBBackedAppStateMachine.h"
 

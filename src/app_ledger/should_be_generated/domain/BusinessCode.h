@@ -20,7 +20,7 @@ namespace ledger {
 /// starting with 1000 to avoid conflict with HttpCode
 class BusinessCode {
  public:
-  static constexpr int ALREADY_EXISTS = 1000;
+  static constexpr int ACCOUNT_ALREADY_EXISTS = 1000;
 };
 
 }  // namespace ledger
