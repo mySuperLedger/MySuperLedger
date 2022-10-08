@@ -77,10 +77,13 @@ class AppStateMachine : public ledger::AppStateMachine {
 
  protected:
   /// command processors
+  ProcessHint process(const ConfigureAccountMetadataCommand &command,
+                      std::vector<std::shared_ptr<Event>> *events) const override;
   ProcessHint process(const CreateAccountCommand &command,
                       std::vector<std::shared_ptr<Event>> *events) const override;
 
   /// event appliers
+  StateMachine &apply(const AccountMetadataConfiguredEvent &event) override;
   StateMachine &apply(const AccountCreatedEvent &event) override;
 
   /// callbacks

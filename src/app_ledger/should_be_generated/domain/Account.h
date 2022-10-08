@@ -14,20 +14,11 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNT_H_
 #define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNT_H_
 
+#include "AccountType.h"
 #include "Balance.h"
 
 namespace gringofts {
 namespace ledger {
-
-enum class AccountType {
-  Unknown = 0,
-  Asset = 1,
-  Liability = 2,
-  Capital = 3,
-  Income = 4,
-  CostOfGoodsSold = 5,
-  Expense = 6,
-};
 
 class Account {
  public:
@@ -41,7 +32,7 @@ class Account {
     assert(mVersion > 0);
     switch (mVersion) {
       case 1: {
-        mAccountType = typeOf(account.type());
+        mAccountType = AccountTypeUtil::typeOf(account.type());
         mBalance = Balance(account.balance());
         mNominalCode = account.nominal_code();
         mName = account.name();
@@ -60,7 +51,7 @@ class Account {
     account.set_version(mVersion);
     switch (mVersion) {
       case 1: {
-        account.set_type(toType());
+        account.set_type(AccountTypeUtil::toType(mAccountType));
         mBalance.encodeTo(*account.mutable_balance());
         account.set_nominal_code(mNominalCode);
         account.set_name(mName);
@@ -116,39 +107,6 @@ class Account {
     }
 
     return true;
-  }
-
- private:
-  AccountType typeOf(protos::AccountType accountType) const {
-    switch (accountType) {
-      case protos::AccountType::Unknown:return AccountType::Unknown;
-      case protos::AccountType::Asset:return AccountType::Asset;
-      case protos::AccountType::Liability:return AccountType::Liability;
-      case protos::AccountType::Capital:return AccountType::Capital;
-      case protos::AccountType::Income:return AccountType::Income;
-      case protos::AccountType::CostOfGoodsSold:return AccountType::CostOfGoodsSold;
-      case protos::AccountType::Expense:return AccountType::Expense;
-      default: {
-        SPDLOG_ERROR("Cannot recognize this type {}, exiting now", accountType);
-        exit(1);
-      }
-    }
-  }
-
-  protos::AccountType toType() const {
-    switch (mAccountType) {
-      case AccountType::Unknown: return protos::AccountType::Unknown;
-      case AccountType::Asset: return protos::AccountType::Asset;
-      case AccountType::Liability:return protos::AccountType::Liability;
-      case AccountType::Capital:return protos::AccountType::Capital;
-      case AccountType::Income:return protos::AccountType::Income;
-      case AccountType::CostOfGoodsSold:return protos::AccountType::CostOfGoodsSold;
-      case AccountType::Expense:return protos::AccountType::Expense;
-      default: {
-        SPDLOG_ERROR("Cannot recognize this type {}, exiting now", mAccountType);
-        exit(1);
-      }
-    }
   }
 
  private:

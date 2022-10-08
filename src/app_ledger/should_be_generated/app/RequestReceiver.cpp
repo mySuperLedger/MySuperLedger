@@ -54,6 +54,7 @@ void RequestReceiver::startListen() {
   // Spawn a new CallData instance to serve new clients.
   for (uint64_t i = 0; i < mPreSpawn; ++i) {
     for (uint64_t j = 0; j < mConcurrency; ++j) {
+      new ConfigureAccountMetadataCallData(&mService, mCompletionQueues[j].get(), mCommandQueue);
       new CreateAccountCallData(&mService, mCompletionQueues[j].get(), mCommandQueue);
     }
   }

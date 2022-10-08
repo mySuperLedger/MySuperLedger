@@ -90,6 +90,8 @@ struct CallData : public CallDataBase {
   grpc::ServerAsyncResponseWriter<ResponseType> mResponder;
 };
 
+using ConfigureAccountMetadataCallData = CallData<protos::ConfigureAccountMetadata::Request,
+                                       protos::ConfigureAccountMetadata::Response>;
 using CreateAccountCallData = CallData<protos::CreateAccount::Request,
                                        protos::CreateAccount::Response>;
 
@@ -98,6 +100,7 @@ using CreateAccountCallData = CallData<protos::CreateAccount::Request,
 }  /// namespace ledger
 }  /// namespace gringofts
 
+#include "ConfigureAccountMetadataCallData.cpp"
 #include "CreateAccountCallData.cpp"
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_CALLDATAS_REQUESTCALLDATA_H_

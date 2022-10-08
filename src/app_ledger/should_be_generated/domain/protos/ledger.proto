@@ -4,6 +4,7 @@ package gringofts.ledger.protos;
 
 // The Ledger service definition.
 service LedgerService {
+  rpc ConfigureAccountMetadata (ConfigureAccountMetadata.Request) returns (ConfigureAccountMetadata.Response) {}
   rpc CreateAccount (CreateAccount.Request) returns (CreateAccount.Response) {}
 }
 
@@ -30,6 +31,30 @@ message Account {
   string desc = 5;  // since v1
   uint64 currency_code = 6;  // since v1
   Balance balance = 7;  // since v1
+}
+
+message AccountMetadata {
+  uint64 version = 1;  // since v1
+  AccountType type = 2;  // since v1
+  uint64 low_inclusive = 3;  // since v1
+  uint64 high_inclusive = 4;  // since v1
+}
+
+message ConfigureAccountMetadata {
+  message Request {
+    AccountMetadata metadata = 1;
+  }
+
+  message Response {
+    uint32 code = 1;
+    string message = 2;
+    string reserved = 3; // leaderHint if the persistence is backed by Raft
+  }
+
+  message ConfiguredEvent {
+    uint64 version = 1;
+    AccountMetadata account_metadata = 2;
+  }
 }
 
 message CreateAccount {

@@ -20,6 +20,16 @@ namespace gringofts {
 namespace ledger {
 namespace v2 {
 
+ProcessHint AppStateMachine::process(const ConfigureAccountMetadataCommand &command,
+                                     std::vector<std::shared_ptr<Event>> *events) const {
+  ProcessHint hint;
+  return hint;
+}
+
+StateMachine &AppStateMachine::apply(const AccountMetadataConfiguredEvent &event) {
+  return *this;
+}
+
 ProcessHint AppStateMachine::process(const CreateAccountCommand &command,
                                      std::vector<std::shared_ptr<Event>> *events) const {
   ProcessHint hint;
@@ -45,7 +55,7 @@ ProcessHint AppStateMachine::process(const CreateAccountCommand &command,
   return hint;
 }
 
-StateMachine &AppStateMachine::apply(const gringofts::ledger::AccountCreatedEvent &event) {
+StateMachine &AppStateMachine::apply(const AccountCreatedEvent &event) {
   const auto &account = event.account();
   auto nominalCode = account.nominalCode();
   assert(mCoA.find(nominalCode) == mCoA.end());

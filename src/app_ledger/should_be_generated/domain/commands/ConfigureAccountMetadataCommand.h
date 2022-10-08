@@ -12,21 +12,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CONFIGUREACCOUNTMETADATACOMMAND_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CONFIGUREACCOUNTMETADATACOMMAND_H_
 
 #include "../../../../infra/es/Command.h"
 #include "../../../../infra/es/ProcessCommandStateMachine.h"
-#include "../Account.h"
+#include "../AccountMetadata.h"
 
 namespace gringofts {
 namespace ledger {
 
-class CreateAccountCommand : public Command {
+class ConfigureAccountMetadataCommand : public Command {
  public:
-  CreateAccountCommand(TimestampInNanos, const protos::CreateAccount::Request &origRequest);
+  ConfigureAccountMetadataCommand(TimestampInNanos, const protos::ConfigureAccountMetadata::Request &origRequest);
 
-  CreateAccountCommand(TimestampInNanos, const std::string &commandStr);
+  ConfigureAccountMetadataCommand(TimestampInNanos, const std::string &commandStr);
 
   std::string encodeToString() const override {
     return mOrigRequest.SerializeAsString();
@@ -37,23 +37,27 @@ class CreateAccountCommand : public Command {
   }
 
   std::string verifyCommand() const override {
+    const auto &metadata = mOrigRequest.metadata();
+    if (metadata.low_inclusive() >= metadata.high_inclusive()) {
+      return "low inclusive is larger than high inclusive";
+    }
     return kVerifiedSuccess;
   }
 
-  const std::optional<Account> &accountOpt() const {
-    return mAccountOpt;
+  const std::optional<AccountMetadata> &accountMetadataOpt() const {
+    return mAccountMetadataOpt;
   }
 
  private:
-  void tryInitAccount();
+  void tryInitAccountMetadata();
   void onPersisted(const std::string &message) override;
   void onPersistFailed(uint32_t code, const std::string &errorMessage, std::optional<uint64_t> reserved) override;
 
-  protos::CreateAccount::Request mOrigRequest;
-  std::optional<Account> mAccountOpt;
+  protos::ConfigureAccountMetadata::Request mOrigRequest;
+  std::optional<AccountMetadata> mAccountMetadataOpt;
 };
 
 }  ///  namespace ledger
 }  ///  namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CONFIGUREACCOUNTMETADATACOMMAND_H_
