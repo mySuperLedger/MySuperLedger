@@ -45,6 +45,7 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
     auto &another = dynamic_cast<RocksDBBackedAppStateMachine &>(*anotherStateMachine);
     mValue = another.mValue;
     std::swap(mCoA, another.mCoA);
+    std::swap(mAccountMetadata, another.mAccountMetadata);
 
     /// explicitly trigger a flush in RocksDB
     another.flushToRocksDB();

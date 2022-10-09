@@ -86,6 +86,18 @@ class AccountMetadata {
     return true;
   }
 
+  AccountType accountType() const {
+    return mAccountType;
+  }
+
+  uint64_t lowInclusive() const {
+    return mLowInclusive;
+  }
+
+  uint64_t highInclusive() const {
+    return mHighInclusive;
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   AccountType mAccountType = AccountType::Unknown;

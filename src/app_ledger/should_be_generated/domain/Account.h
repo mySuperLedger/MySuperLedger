@@ -66,6 +66,10 @@ class Account {
     }
   }
 
+  AccountType type() const {
+    return mAccountType;
+  }
+
   uint64_t nominalCode() const {
     return mNominalCode;
   }

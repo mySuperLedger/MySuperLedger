@@ -21,6 +21,8 @@ namespace ledger {
 class BusinessCode {
  public:
   static constexpr int ACCOUNT_ALREADY_EXISTS = 1000;
+  static constexpr int ACCOUNT_METADATA_RANGE_OVERLAP = 1001;
+  static constexpr int ACCOUNT_METADATA_RANGE_NOT_COVER_EXISTING_ACCOUNT = 1002;
 };
 
 }  // namespace ledger

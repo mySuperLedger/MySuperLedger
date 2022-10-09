@@ -98,6 +98,7 @@ void RocksDBBackedAppStateMachine::openRocksDB(const std::string &walDir,
   std::vector<rocksdb::ColumnFamilyDescriptor> columnFamilyDescriptors;
   columnFamilyDescriptors.emplace_back(RocksDBConf::kDefault, smallColumnFamilyOptions);
   columnFamilyDescriptors.emplace_back(RocksDBConf::kChartOfAccounts, columnFamilyOptions);
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kAccountMetadata, columnFamilyOptions);
 
   /// open DB
   rocksdb::DB *db;
@@ -181,9 +182,42 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
   }
   assert(accountsIter->status().ok());
   delete accountsIter;
+
+  /// load AccountMetadata
+  rocksdb::Iterator *accountMetadataIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
+                                                                 mColumnFamilyHandles[RocksDBConf::ACCOUNT_METADATA]);
+  for (accountMetadataIter->SeekToFirst(); accountMetadataIter->Valid(); accountMetadataIter->Next()) {
+    const auto &key = accountMetadataIter->key();
+    const auto &val = accountMetadataIter->value();
+    protos::AccountMetadata accountMetadataProto;
+    accountMetadataProto.ParseFromString(val.ToString());
+    AccountMetadata accountMetadata;
+    accountMetadata.initWith(accountMetadataProto);
+    auto type = accountMetadata.accountType();
+    assert(static_cast<int>(type) == std::stoi(key.ToString()));
+    assert(mAccountMetadata.find(type) == mAccountMetadata.end());
+    mAccountMetadata[type] = accountMetadata;
+  }
+  assert(accountMetadataIter->status().ok());
+  delete accountMetadataIter;
 }
 
-void RocksDBBackedAppStateMachine::onAccountInserted(const gringofts::ledger::Account &account) {
+void RocksDBBackedAppStateMachine::onAccountMetadataUpdated(const AccountMetadata &accountMetadata) {
+  rocksdb::ReadOptions readOptions;
+
+  auto type = static_cast<int>(accountMetadata.accountType());
+  protos::AccountMetadata accountMetadataProto;
+  accountMetadata.encodeTo(accountMetadataProto);
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::ACCOUNT_METADATA],
+                                std::to_string(type),
+                                rocksdb::Slice(accountMetadataProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+}
+
+void RocksDBBackedAppStateMachine::onAccountInserted(const Account &account) {
   rocksdb::ReadOptions readOptions;
 
   auto nominalCode = account.nominalCode();

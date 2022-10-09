@@ -65,11 +65,12 @@ class LedgerAppStateMachineTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<CreateAccountCommand> createSampleCreateAccountCommand() {
+  std::shared_ptr<CreateAccountCommand> createSampleCreateAccountCommand(protos::AccountType type,
+                                                                         uint64_t nominalCode) {
     protos::CreateAccount::Request request;
     request.mutable_account()->set_version(1);
-    request.mutable_account()->set_type(protos::AccountType::Asset);
-    request.mutable_account()->set_nominal_code(1000);
+    request.mutable_account()->set_type(type);
+    request.mutable_account()->set_nominal_code(nominalCode);
     request.mutable_account()->set_name("creditCard");
     request.mutable_account()->set_desc("Shanghai credit card");
     request.mutable_account()->set_currency_code(156);  // CNY
@@ -85,6 +86,25 @@ class LedgerAppStateMachineTest : public ::testing::Test {
     return command;
   }
 
+  std::shared_ptr<ConfigureAccountMetadataCommand> createSampleConfigureAccountMetadataCommand(protos::AccountType type,
+                                                                                               uint64_t lowInclusive,
+                                                                                               uint64_t highInclusive
+  ) {
+    protos::ConfigureAccountMetadata::Request request;
+    request.mutable_metadata()->set_version(1);
+    request.mutable_metadata()->set_type(type);
+    request.mutable_metadata()->set_low_inclusive(lowInclusive);
+    request.mutable_metadata()->set_high_inclusive(highInclusive);
+    auto createdTimeInNanos = TimeUtil::currentTimeInNanos();
+    auto command = std::make_shared<ConfigureAccountMetadataCommand>(createdTimeInNanos, request);
+    command->setRequestHandle(nullptr);
+    command->setCreatorId(app::AppInfo::subsystemId());
+    command->setGroupId(app::AppInfo::groupId());
+    command->setGroupVersion(app::AppInfo::groupVersion());
+
+    return command;
+  }
+
   std::shared_ptr<gringofts::PMRContainerFactory> mFactory;
   std::unique_ptr<v2::RocksDBBackedAppStateMachine> mRocksDBBackedStateMachine;
   std::unique_ptr<v2::MemoryBackedAppStateMachine> mInMemoryStateMachine;
@@ -92,7 +112,7 @@ class LedgerAppStateMachineTest : public ::testing::Test {
 
 TEST_F(LedgerAppStateMachineTest, CreateAccount) {
   /// 1. arrange
-  auto command = createSampleCreateAccountCommand();
+  auto command = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000);
   std::vector<std::shared_ptr<gringofts::Event>> events;
 
   /// 2. act
@@ -121,7 +141,7 @@ TEST_F(LedgerAppStateMachineTest, CreateAccount) {
 
 TEST_F(LedgerAppStateMachineTest, CreateExistingAccount) {
   /// 1. arrange
-  auto command = createSampleCreateAccountCommand();
+  auto command = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000);
   std::vector<std::shared_ptr<gringofts::Event>> events;
   /// create an account
   mInMemoryStateMachine->processCommandAndApply(*command, &events);
@@ -131,7 +151,7 @@ TEST_F(LedgerAppStateMachineTest, CreateExistingAccount) {
 
   /// act
   /// try to create an account that already exists
-  auto command1 = createSampleCreateAccountCommand();
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Liability, 1000);
   std::vector<std::shared_ptr<gringofts::Event>> events1;
   /// create an account
   auto result = mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
@@ -142,6 +162,91 @@ TEST_F(LedgerAppStateMachineTest, CreateExistingAccount) {
   /// 3. assert
   EXPECT_EQ(result.mCode, BusinessCode::ACCOUNT_ALREADY_EXISTS);
   EXPECT_TRUE(events1.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, ConfigureAccountMetadata) {
+  /// 1. arrange
+  /// create an account
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// act
+  /// create an account metadata
+  auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 10, 2000);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, HttpCode::OK);
+  EXPECT_EQ(events2.size(), 1);
+  const auto &event = *(events2[0]);
+  ASSERT_EQ(&typeid(AccountMetadataConfiguredEvent), &typeid(event));
+  const auto &accountMetadataConfiguredEvent = dynamic_cast<const AccountMetadataConfiguredEvent &>(event);
+  const auto &accountMetadataFromCommandOpt = command2->accountMetadataOpt();
+  EXPECT_TRUE(accountMetadataFromCommandOpt);
+  const auto &accountMetadataFromCommand = *accountMetadataFromCommandOpt;
+  const auto &accountMetadataFromEvent = accountMetadataConfiguredEvent.accountMetadata();
+  EXPECT_TRUE(accountMetadataFromCommand.isSame(accountMetadataFromEvent));
+
+  /// flush to disk and re-init the state from persisted
+  mRocksDBBackedStateMachine->flushToRocksDB();
+  mRocksDBBackedStateMachine->recoverSelf();
+  EXPECT_TRUE(mInMemoryStateMachine->hasSameState(*mRocksDBBackedStateMachine));
+}
+
+TEST_F(LedgerAppStateMachineTest, AccountMetadataNotCoverExistingAccountNominalCode) {
+  /// 1. arrange
+  /// create an account
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// act
+  /// create an account metadata
+  auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 10, 900);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::ACCOUNT_METADATA_RANGE_NOT_COVER_EXISTING_ACCOUNT);
+  EXPECT_TRUE(events2.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, AccountMetadataRangeOverlap) {
+  /// 1. arrange
+  /// create an account metadata
+  auto command1 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Expense, 10, 1000);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// act
+  /// create another account metadata whose range overlaps
+  auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 50, 900);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::ACCOUNT_METADATA_RANGE_OVERLAP);
+  EXPECT_TRUE(events2.empty());
 }
 
 }  // namespace ledger

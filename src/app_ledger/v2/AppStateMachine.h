@@ -31,6 +31,7 @@ class AppStateMachine : public ledger::AppStateMachine {
     enum ColumnFamilyIndices {
       DEFAULT = 0,
       CHART_OF_ACCOUNTS = 1,
+      ACCOUNT_METADATA = 2,
     };
 
     /// RocksDB key
@@ -42,6 +43,7 @@ class AppStateMachine : public ledger::AppStateMachine {
      */
     static constexpr const char *kDefault = "default";
     static constexpr const char *kChartOfAccounts = "chart_of_accounts";
+    static constexpr const char *kAccountMetadata = "account_metadata";
   };
 
   /**
@@ -50,6 +52,7 @@ class AppStateMachine : public ledger::AppStateMachine {
   void clearState() override {
     mValue = 0;
     mCoA.clear();
+    mAccountMetadata.clear();
   }
 
   /// unit test
@@ -63,6 +66,17 @@ class AppStateMachine : public ledger::AppStateMachine {
     for (const auto &[k, v] : another.mCoA) {
       const auto &iter = mCoA.find(k);
       if (iter == mCoA.cend()) {
+        SPDLOG_WARN("entry with key {} not found in map", k);
+        return false;
+      }
+      if (!v.isSame(iter->second)) {
+        SPDLOG_WARN("key {} have different values.", k);
+        return false;
+      }
+    }
+    for (const auto &[k, v] : another.mAccountMetadata) {
+      const auto &iter = mAccountMetadata.find(k);
+      if (iter == mAccountMetadata.cend()) {
         SPDLOG_WARN("entry with key {} not found in map", k);
         return false;
       }
@@ -88,11 +102,13 @@ class AppStateMachine : public ledger::AppStateMachine {
 
   /// callbacks
   virtual void onAccountInserted(const Account &account) {}
+  virtual void onAccountMetadataUpdated(const AccountMetadata &accountMetadata) {}
 
  protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM
   uint64_t mValue = 0;
   std::unordered_map<uint64_t, Account> mCoA;  // Chart of Accounts
+  std::unordered_map<AccountType, AccountMetadata> mAccountMetadata;
 };
 
 }  /// namespace v2

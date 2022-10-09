@@ -61,6 +61,7 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
  private:
   /// callbacks
   void onAccountInserted(const Account &account) override;
+  void onAccountMetadataUpdated(const AccountMetadata &accountMetadata) override;
 
  private:
   friend class MemoryBackedAppStateMachine;
