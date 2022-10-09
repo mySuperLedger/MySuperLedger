@@ -37,6 +37,7 @@ test/target/
 *.out
 test.db
 test/**/node/*
+test/**/data/*
 *.cov
 *.gcov
 node_*

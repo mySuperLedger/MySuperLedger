@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#include "AccountCreatedEvent.h"
+#include "AccountMetadataConfiguredEvent.h"
 
 #include <spdlog/spdlog.h>
 
@@ -21,22 +21,24 @@ limitations under the License.
 namespace gringofts {
 namespace ledger {
 
-AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, const Account &account)
-    : Event(ACCOUNT_CREATED_EVENT, createdTimeInNanos) {
-  mAccount = account;
+AccountMetadataConfiguredEvent::AccountMetadataConfiguredEvent(TimestampInNanos createdTimeInNanos,
+                                                               const AccountMetadata &accountMetadata)
+    : Event(ACCOUNT_METADATA_CONFIGURED_EVENT, createdTimeInNanos) {
+  mAccountMetadata = accountMetadata;
 }
 
-AccountCreatedEvent::AccountCreatedEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr)
-    : Event(ACCOUNT_CREATED_EVENT, createdTimeInNanos) {
+AccountMetadataConfiguredEvent::AccountMetadataConfiguredEvent(TimestampInNanos createdTimeInNanos,
+                                                               std::string_view eventStr)
+    : Event(ACCOUNT_METADATA_CONFIGURED_EVENT, createdTimeInNanos) {
   decodeFromString(eventStr);
 }
 
-std::string AccountCreatedEvent::encodeToString() const {
-  protos::CreateAccount::CreatedEvent eventProto;
+std::string AccountMetadataConfiguredEvent::encodeToString() const {
+  protos::ConfigureAccountMetadata::ConfiguredEvent eventProto;
   eventProto.set_version(mVersion);
   switch (mVersion) {
     case 1: {
-      mAccount.encodeTo(*eventProto.mutable_account());
+      mAccountMetadata.encodeTo(*eventProto.mutable_account_metadata());
       break;
     }
     default: {
@@ -48,14 +50,14 @@ std::string AccountCreatedEvent::encodeToString() const {
   return eventProto.SerializeAsString();
 }
 
-void AccountCreatedEvent::decodeFromString(std::string_view payload) {
-  protos::CreateAccount::CreatedEvent eventProto;
+void AccountMetadataConfiguredEvent::decodeFromString(std::string_view payload) {
+  protos::ConfigureAccountMetadata::ConfiguredEvent eventProto;
   eventProto.ParseFromString(std::string(payload));
   mVersion = eventProto.version();
   assert(mVersion > 0);
   switch (mVersion) {
     case 1: {
-      mAccount.initWith(eventProto.account());
+      mAccountMetadata.initWith(eventProto.account_metadata());
       break;
     }
     default: {

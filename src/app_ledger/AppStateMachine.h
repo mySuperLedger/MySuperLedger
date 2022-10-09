@@ -15,8 +15,10 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_APPSTATEMACHINE_H_
 #define SRC_APP_LEDGER_APPSTATEMACHINE_H_
 
+#include "should_be_generated/domain/commands/ConfigureAccountMetadataCommand.h"
 #include "should_be_generated/domain/commands/CreateAccountCommand.h"
 #include "should_be_generated/domain/events/AccountCreatedEvent.h"
+#include "should_be_generated/domain/events/AccountMetadataConfiguredEvent.h"
 #include "../app_util/AppStateMachine.h"
 
 namespace gringofts {
@@ -37,6 +39,11 @@ class AppStateMachine : public gringofts::app::AppStateMachine {
                               std::vector<std::shared_ptr<Event>> *events) const = 0;
 
   virtual StateMachine &apply(const AccountCreatedEvent &event) = 0;
+
+  virtual ProcessHint process(const ConfigureAccountMetadataCommand &command,
+                              std::vector<std::shared_ptr<Event>> *events) const = 0;
+
+  virtual StateMachine &apply(const AccountMetadataConfiguredEvent &event) = 0;
 };
 
 }  /// namespace ledger

@@ -29,7 +29,8 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   RocksDBBackedAppStateMachine(const std::string &walDir, const std::string &dbDir) {
     openRocksDB(walDir,
                 dbDir,
-                &mRocksDB);
+                &mRocksDB,
+                &mColumnFamilyHandles);
   }
 
   ~RocksDBBackedAppStateMachine() override { closeRocksDB(&mRocksDB); }
@@ -40,10 +41,11 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   uint64_t getValue() const override;
   void setValue(uint64_t value) override;
 
-  /**
-   * integration part
-   */
+  /// integration part
   void swapState(StateMachine *anotherStateMachine) override { assert(0); }
+
+  /// write WriteBatch to RocksDB synchronously
+  void flushToRocksDB();
 
   /// invoked after swapState() is called, return lastFlushedIndex
   uint64_t recoverSelf();
@@ -57,24 +59,30 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   }
 
  private:
+  /// callbacks
+  void onAccountInserted(const Account &account) override;
+  void onAccountMetadataUpdated(const AccountMetadata &accountMetadata) override;
+
+ private:
   friend class MemoryBackedAppStateMachine;
 
   /// open RocksDB
   void openRocksDB(const std::string &walDir,
                    const std::string &dbDir,
-                   std::shared_ptr<rocksdb::DB> *dbPtr);
+                   std::shared_ptr<rocksdb::DB> *dbPtr,
+                   std::vector<rocksdb::ColumnFamilyHandle *> *columnFamilyHandles);
 
   /// close RocksDB
   void closeRocksDB(std::shared_ptr<rocksdb::DB> *dbPtr);
-
-  /// write WriteBatch to RocksDB synchronously
-  void flushToRocksDB();
 
   /// read value/lastAppliedIndex from RocksDB
   void loadFromRocksDB();
 
   /// the max num of bundles batched in write batch
   const uint64_t mMaxBatchSize = 500;
+
+  /// column family handles
+  std::vector<rocksdb::ColumnFamilyHandle *> mColumnFamilyHandles;
 
   std::shared_ptr<rocksdb::DB> mRocksDB;
   rocksdb::WriteBatch mWriteBatch;

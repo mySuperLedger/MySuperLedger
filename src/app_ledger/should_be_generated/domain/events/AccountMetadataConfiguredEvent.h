@@ -12,36 +12,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTMETADATACONFIGUREDEVENT_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTMETADATACONFIGUREDEVENT_H_
 
 #include "../../../../infra/es/Event.h"
-#include "../../../generated/grpc/ledger.pb.h"
-#include "../Account.h"
+#include "../AccountMetadata.h"
 
 namespace gringofts {
 namespace ledger {
 
-class AccountCreatedEvent : public Event {
+class AccountMetadataConfiguredEvent : public Event {
  public:
-  explicit AccountCreatedEvent(TimestampInNanos createdTimeInNanos, const Account &account);
+  explicit AccountMetadataConfiguredEvent(TimestampInNanos createdTimeInNanos, const AccountMetadata &accountMetadata);
 
-  AccountCreatedEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr);
+  AccountMetadataConfiguredEvent(TimestampInNanos createdTimeInNanos, std::string_view eventStr);
 
   std::string encodeToString() const override;
 
   void decodeFromString(std::string_view payload) override;
 
-  const Account &account() const {
-    return mAccount;
+  const AccountMetadata &accountMetadata() const {
+    return mAccountMetadata;
   }
 
  private:
   uint64_t mVersion = 1;
-  Account mAccount;
+  AccountMetadata mAccountMetadata;
 };
 
 }  /// namespace ledger
 }  /// namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTCREATEDEVENT_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_EVENTS_ACCOUNTMETADATACONFIGUREDEVENT_H_

@@ -23,7 +23,8 @@ void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
   mValue = value;
 
   /// save in RocksDB
-  auto status = mWriteBatch.Put(RocksDBConf::kValueKey, std::to_string(value));
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                                RocksDBConf::kValueKey, std::to_string(value));
   if (!status.ok()) {
     SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
@@ -47,7 +48,8 @@ uint64_t RocksDBBackedAppStateMachine::recoverSelf() {
 }
 
 void RocksDBBackedAppStateMachine::commit(uint64_t appliedIndex) {
-  auto status = mWriteBatch.Put(RocksDBConf::kLastAppliedIndexKey, std::to_string(appliedIndex));
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                                RocksDBConf::kLastAppliedIndexKey, std::to_string(appliedIndex));
   if (!status.ok()) {
     SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
@@ -67,17 +69,40 @@ void RocksDBBackedAppStateMachine::commit(uint64_t appliedIndex) {
 
 void RocksDBBackedAppStateMachine::openRocksDB(const std::string &walDir,
                                                const std::string &dbDir,
-                                               std::shared_ptr<rocksdb::DB> *dbPtr) {
+                                               std::shared_ptr<rocksdb::DB> *dbPtr,
+                                               std::vector<rocksdb::ColumnFamilyHandle *> *columnFamilyHandles) {
   /// options
   rocksdb::Options options;
 
   options.IncreaseParallelism();
   options.create_if_missing = true;
+  options.create_missing_column_families = true;
   options.wal_dir = walDir;
+
+  /// column family options
+  rocksdb::ColumnFamilyOptions columnFamilyOptions;
+
+  /// default CompactionStyle for column family is kCompactionStyleLevel
+  columnFamilyOptions.OptimizeLevelStyleCompaction();
+
+  rocksdb::ColumnFamilyOptions smallColumnFamilyOptions;
+  smallColumnFamilyOptions.OptimizeLevelStyleCompaction();
+  smallColumnFamilyOptions.write_buffer_size = 32 << 20;
+  smallColumnFamilyOptions.max_write_buffer_number = 2;
+
+  rocksdb::ColumnFamilyOptions mediumColumnFamilyOptions;
+  mediumColumnFamilyOptions.OptimizeLevelStyleCompaction();
+  mediumColumnFamilyOptions.write_buffer_size = 64 << 20;
+  mediumColumnFamilyOptions.max_write_buffer_number = 4;
+
+  std::vector<rocksdb::ColumnFamilyDescriptor> columnFamilyDescriptors;
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kDefault, smallColumnFamilyOptions);
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kChartOfAccounts, columnFamilyOptions);
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kAccountMetadata, columnFamilyOptions);
 
   /// open DB
   rocksdb::DB *db;
-  auto status = rocksdb::DB::Open(options, dbDir, &db);
+  auto status = rocksdb::DB::Open(options, dbDir, columnFamilyDescriptors, columnFamilyHandles, &db);
 
   assert(status.ok());
   (*dbPtr).reset(db);
@@ -116,6 +141,7 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
 
   /// load last applied index
   auto status = mRocksDB->Get(rocksdb::ReadOptions(),
+                              mColumnFamilyHandles[RocksDBConf::DEFAULT],
                               RocksDBConf::kLastAppliedIndexKey, &value);
   if (status.ok()) {
     mLastFlushedIndex = std::stoull(value);
@@ -127,13 +153,81 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
   }
 
   /// load value
-  status = mRocksDB->Get(rocksdb::ReadOptions(), RocksDBConf::kValueKey, &value);
+  status = mRocksDB->Get(rocksdb::ReadOptions(),
+                         mColumnFamilyHandles[RocksDBConf::DEFAULT],
+                         RocksDBConf::kValueKey, &value);
   if (status.ok()) {
     mValue = std::stoull(value);
   } else if (status.IsNotFound()) {
     mValue = 0;
   } else {
     SPDLOG_ERROR("Error in RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+
+  /// load CoA
+  rocksdb::Iterator *accountsIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
+                                                          mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS]);
+  for (accountsIter->SeekToFirst(); accountsIter->Valid(); accountsIter->Next()) {
+    const auto &key = accountsIter->key();
+    const auto &val = accountsIter->value();
+    protos::Account accountProto;
+    accountProto.ParseFromString(val.ToString());
+    Account account;
+    account.initWith(accountProto);
+    auto nominalCode = account.nominalCode();
+    assert(nominalCode == std::stoull(key.ToString()));
+    assert(mCoA.find(nominalCode) == mCoA.end());
+    mCoA[nominalCode] = account;
+  }
+  assert(accountsIter->status().ok());
+  delete accountsIter;
+
+  /// load AccountMetadata
+  rocksdb::Iterator *accountMetadataIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
+                                                                 mColumnFamilyHandles[RocksDBConf::ACCOUNT_METADATA]);
+  for (accountMetadataIter->SeekToFirst(); accountMetadataIter->Valid(); accountMetadataIter->Next()) {
+    const auto &key = accountMetadataIter->key();
+    const auto &val = accountMetadataIter->value();
+    protos::AccountMetadata accountMetadataProto;
+    accountMetadataProto.ParseFromString(val.ToString());
+    AccountMetadata accountMetadata;
+    accountMetadata.initWith(accountMetadataProto);
+    auto type = accountMetadata.accountType();
+    assert(static_cast<int>(type) == std::stoi(key.ToString()));
+    assert(mAccountMetadata.find(type) == mAccountMetadata.end());
+    mAccountMetadata[type] = accountMetadata;
+  }
+  assert(accountMetadataIter->status().ok());
+  delete accountMetadataIter;
+}
+
+void RocksDBBackedAppStateMachine::onAccountMetadataUpdated(const AccountMetadata &accountMetadata) {
+  rocksdb::ReadOptions readOptions;
+
+  auto type = static_cast<int>(accountMetadata.accountType());
+  protos::AccountMetadata accountMetadataProto;
+  accountMetadata.encodeTo(accountMetadataProto);
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::ACCOUNT_METADATA],
+                                std::to_string(type),
+                                rocksdb::Slice(accountMetadataProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+}
+
+void RocksDBBackedAppStateMachine::onAccountInserted(const Account &account) {
+  rocksdb::ReadOptions readOptions;
+
+  auto nominalCode = account.nominalCode();
+  protos::Account accountProto;
+  account.encodeTo(accountProto);
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS],
+                                std::to_string(nominalCode),
+                                rocksdb::Slice(accountProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);
   }
 }

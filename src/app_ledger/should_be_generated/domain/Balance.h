@@ -43,6 +43,39 @@ class Balance {
     }
   }
 
+  void encodeTo(protos::Balance &balance) const {  // NOLINT[runtime/references]
+    balance.set_version(mVersion);
+    switch (mVersion) {
+      case 1: {
+        balance.set_value(mValue);
+        break;
+      }
+      default: {
+        SPDLOG_ERROR("Cannot recognize this version {}, exiting now", mVersion);
+        exit(1);
+      }
+    }
+  }
+
+  bool isSame(const Balance &another) const {
+    if (mVersion != another.mVersion) {
+      SPDLOG_WARN("version is not the same, {} vs {}", mVersion, another.mVersion);
+      return false;
+    }
+
+    if (mVersion == 1) {
+      if (mValue != another.mValue) {
+        SPDLOG_WARN("value is not the same, {} vs {}", mValue, another.mValue);
+        return false;
+      }
+    } else {
+      SPDLOG_ERROR("Cannot recognize this version {}", mVersion);
+      return false;
+    }
+
+    return true;
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   uint64_t mValue;

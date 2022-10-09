@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <optional>
 
+#include "../../infra/util/PMRContainerFactory.h"
 #include "AppStateMachine.h"
 #include "RocksDBBackedAppStateMachine.h"
 
@@ -43,6 +44,8 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
   void swapState(StateMachine *anotherStateMachine) override {
     auto &another = dynamic_cast<RocksDBBackedAppStateMachine &>(*anotherStateMachine);
     mValue = another.mValue;
+    std::swap(mCoA, another.mCoA);
+    std::swap(mAccountMetadata, another.mAccountMetadata);
 
     /// explicitly trigger a flush in RocksDB
     another.flushToRocksDB();
