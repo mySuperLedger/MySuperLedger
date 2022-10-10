@@ -14,6 +14,7 @@ limitations under the License.
 
 #include "EventDecoderImpl.h"
 #include "events/AccountCreatedEvent.h"
+#include "events/AccountMetadataConfiguredEvent.h"
 
 namespace gringofts {
 namespace ledger {
@@ -24,6 +25,10 @@ std::unique_ptr<Event> EventDecoderImpl::decodeEventFromString(const EventMetaDa
   switch (metaData.getType()) {
     case ACCOUNT_CREATED_EVENT: {
       event = std::make_unique<AccountCreatedEvent>(metaData.getCreatedTimeInNanos(), std::string(payload));
+      break;
+    }
+    case ACCOUNT_METADATA_CONFIGURED_EVENT: {
+      event = std::make_unique<AccountMetadataConfiguredEvent>(metaData.getCreatedTimeInNanos(), std::string(payload));
       break;
     }
     default:return nullptr;
