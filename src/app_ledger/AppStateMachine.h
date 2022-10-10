@@ -31,9 +31,6 @@ class AppStateMachine : public gringofts::app::AppStateMachine {
 
   ProcessHint processCommandAndApply(const Command &command, std::vector<std::shared_ptr<Event>> *events) override;
 
-  virtual void setValue(uint64_t value) = 0;
-  virtual uint64_t getValue() const = 0;
-
  protected:
   virtual ProcessHint process(const CreateAccountCommand &command,
                               std::vector<std::shared_ptr<Event>> *events) const = 0;

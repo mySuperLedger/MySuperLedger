@@ -36,7 +36,6 @@ class AppStateMachine : public ledger::AppStateMachine {
 
     /// RocksDB key
     static constexpr const char *kLastAppliedIndexKey = "last_applied_index";
-    static constexpr const char *kValueKey = "value";
 
     /**
      * ColumnFamily Names
@@ -50,7 +49,6 @@ class AppStateMachine : public ledger::AppStateMachine {
    * integration
    */
   void clearState() override {
-    mValue = 0;
     mCoA.clear();
     mAccountMetadata.clear();
   }
@@ -106,7 +104,6 @@ class AppStateMachine : public ledger::AppStateMachine {
 
  protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM
-  uint64_t mValue = 0;
   std::unordered_map<uint64_t, Account> mCoA;  // Chart of Accounts
   std::unordered_map<AccountType, AccountMetadata> mAccountMetadata;
 };

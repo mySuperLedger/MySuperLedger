@@ -35,12 +35,6 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
 
   ~RocksDBBackedAppStateMachine() override { closeRocksDB(&mRocksDB); }
 
-  /**
-   * implement getter() and setter()
-   */
-  uint64_t getValue() const override;
-  void setValue(uint64_t value) override;
-
   /// integration part
   void swapState(StateMachine *anotherStateMachine) override { assert(0); }
 

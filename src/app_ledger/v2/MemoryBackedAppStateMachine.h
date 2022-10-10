@@ -29,21 +29,12 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
  public:
   explicit MemoryBackedAppStateMachine(
       std::shared_ptr<gringofts::PMRContainerFactory> containerFactory) {}
-  /**
-   * implement getter() and setter()
-   */
-  void setValue(uint64_t value) override {
-    mValue = value;
-  }
-
-  uint64_t getValue() const override { return mValue; }
 
   /**
    * integration
    */
   void swapState(StateMachine *anotherStateMachine) override {
     auto &another = dynamic_cast<RocksDBBackedAppStateMachine &>(*anotherStateMachine);
-    mValue = another.mValue;
     std::swap(mCoA, another.mCoA);
     std::swap(mAccountMetadata, another.mAccountMetadata);
 

@@ -18,23 +18,6 @@ namespace gringofts {
 namespace ledger {
 namespace v2 {
 
-void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
-  /// save in memory
-  mValue = value;
-
-  /// save in RocksDB
-  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
-                                RocksDBConf::kValueKey, std::to_string(value));
-  if (!status.ok()) {
-    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
-    assert(0);
-  }
-}
-
-uint64_t RocksDBBackedAppStateMachine::getValue() const {
-  return mValue;
-}
-
 uint64_t RocksDBBackedAppStateMachine::recoverSelf() {
   /// write batch should be empty.
   assert(mWriteBatch.Count() == 0);
@@ -147,19 +130,6 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
     mLastFlushedIndex = std::stoull(value);
   } else if (status.IsNotFound()) {
     mLastFlushedIndex = 0;
-  } else {
-    SPDLOG_ERROR("Error in RocksDB: {}. Exiting...", status.ToString());
-    assert(0);
-  }
-
-  /// load value
-  status = mRocksDB->Get(rocksdb::ReadOptions(),
-                         mColumnFamilyHandles[RocksDBConf::DEFAULT],
-                         RocksDBConf::kValueKey, &value);
-  if (status.ok()) {
-    mValue = std::stoull(value);
-  } else if (status.IsNotFound()) {
-    mValue = 0;
   } else {
     SPDLOG_ERROR("Error in RocksDB: {}. Exiting...", status.ToString());
     assert(0);
