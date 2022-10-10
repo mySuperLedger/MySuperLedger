@@ -9,7 +9,7 @@ service LedgerService {
 }
 
 enum AccountType {
-  Unknown = 0;
+  UnknownAccountType = 0;
   Asset = 1;
   Liability = 2;
   Capital = 3;
@@ -38,6 +38,45 @@ message AccountMetadata {
   AccountType type = 2;  // since v1
   uint64 low_inclusive = 3;  // since v1
   uint64 high_inclusive = 4;  // since v1
+}
+
+/// Amount/Balance relationship:
+///   Balance +/- Amount = Balance
+///   Balance - Balance = Amount
+///   Amount +/- Amount = Amount
+///   Balance + Balance = Undefined
+message Amount {
+  uint64 version = 1;  // since v1
+  uint64 value = 2;  // since v1
+}
+
+enum TransactionType {
+  UnknownTransactionType = 0;
+  Debit = 1;
+  Credit = 2;
+}
+
+/// organization
+/// Journal
+///   - JournalEntry
+///       - JournalLine
+///       - JournalLine
+message JournalLine {
+  uint64 version = 1;  // since v1
+  uint64 nominal_code = 2;  // since v1
+  TransactionType transaction_type = 3;  // since v1
+  Amount amount = 4;  // since v1
+  uint64 currency_code = 5;  // since v1
+  string ref_data = 6;  // since v1
+}
+
+message JournalEntry {
+  uint64 version = 1;  // since v1
+  string id = 2;  // since v1
+  uint64 valid_time = 3;  // since v1
+  uint64 record_time = 4;  // since v1
+  repeated JournalLine journal_lines = 5;  // since v1
+  string purpose = 6;  // since v1
 }
 
 message ConfigureAccountMetadata {

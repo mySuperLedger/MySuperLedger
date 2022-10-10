@@ -33,7 +33,7 @@ class AccountTypeUtil final {
  public:
   static AccountType typeOf(protos::AccountType accountType) {
     switch (accountType) {
-      case protos::AccountType::Unknown:return AccountType::Unknown;
+      case protos::AccountType::UnknownAccountType:return AccountType::Unknown;
       case protos::AccountType::Asset:return AccountType::Asset;
       case protos::AccountType::Liability:return AccountType::Liability;
       case protos::AccountType::Capital:return AccountType::Capital;
@@ -46,14 +46,14 @@ class AccountTypeUtil final {
 
   static protos::AccountType toType(AccountType accountType) {
     switch (accountType) {
-      case AccountType::Unknown: return protos::AccountType::Unknown;
+      case AccountType::Unknown: return protos::AccountType::UnknownAccountType;
       case AccountType::Asset: return protos::AccountType::Asset;
       case AccountType::Liability:return protos::AccountType::Liability;
       case AccountType::Capital:return protos::AccountType::Capital;
       case AccountType::Income:return protos::AccountType::Income;
       case AccountType::CostOfGoodsSold:return protos::AccountType::CostOfGoodsSold;
       case AccountType::Expense:return protos::AccountType::Expense;
-      default: return protos::AccountType::Unknown;
+      default: return protos::AccountType::UnknownAccountType;
     }
   }
 };
