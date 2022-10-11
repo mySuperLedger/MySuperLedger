@@ -25,8 +25,10 @@ set(APP_LEDGER_AUTOGEN
         should_be_generated/domain/EventDecoderImpl.cpp
         should_be_generated/domain/commands/ConfigureAccountMetadataCommand.cpp
         should_be_generated/domain/commands/CreateAccountCommand.cpp
+        should_be_generated/domain/commands/RecordJournalEntryCommand.cpp
         should_be_generated/domain/events/AccountCreatedEvent.cpp
-        should_be_generated/domain/events/AccountMetadataConfiguredEvent.cpp)
+        should_be_generated/domain/events/AccountMetadataConfiguredEvent.cpp
+        should_be_generated/domain/events/JournalEntryRecordedEvent.cpp)
 
 set(APP_LEDGER_SRC
         v2/AppStateMachine.cpp

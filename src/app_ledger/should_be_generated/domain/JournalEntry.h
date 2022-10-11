@@ -36,7 +36,8 @@ class JournalEntry {
         mRecordTime = journalEntry.record_time();
         mPurpose = journalEntry.purpose();
         for (const auto &journalLineProto : journalEntry.journal_lines()) {
-          auto journalLine = std::make_unique<JournalLine>(journalLineProto);
+          JournalLine journalLine;
+          journalLine.initWith(journalLineProto);
           mJournalLines.push_back(std::move(journalLine));
         }
         break;
@@ -57,7 +58,7 @@ class JournalEntry {
         journalEntry.set_record_time(mRecordTime);
         journalEntry.set_purpose(mPurpose);
         for (const auto &journalLine : mJournalLines) {
-          journalLine->encodeTo(*(journalEntry.mutable_journal_lines()->Add()));
+          journalLine.encodeTo(*(journalEntry.mutable_journal_lines()->Add()));
         }
         break;
       }
@@ -96,8 +97,8 @@ class JournalEntry {
         return false;
       }
       for (auto i = 0; i < mJournalLines.size(); i++) {
-        const auto &left = *mJournalLines[i];
-        const auto &right = *another.mJournalLines[i];
+        const auto &left = mJournalLines[i];
+        const auto &right = another.mJournalLines[i];
         if (!left.isSame(right)) {
           SPDLOG_WARN("journal line is not the same");
           return false;
@@ -116,7 +117,7 @@ class JournalEntry {
   std::string mId;  // uniquely identify this entry
   uint64_t mValidTime;  // the point this entry happened
   uint64_t mRecordTime;  // the point this entry is recorded in the journal
-  std::vector<std::unique_ptr<JournalLine>> mJournalLines;
+  std::vector<JournalLine> mJournalLines;
   std::string mPurpose;  // what this entry book, e.g., record a payment
 };
 

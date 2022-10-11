@@ -6,6 +6,7 @@ package gringofts.ledger.protos;
 service LedgerService {
   rpc ConfigureAccountMetadata (ConfigureAccountMetadata.Request) returns (ConfigureAccountMetadata.Response) {}
   rpc CreateAccount (CreateAccount.Request) returns (CreateAccount.Response) {}
+  rpc RecordJournalEntry (RecordJournalEntry.Request) returns (RecordJournalEntry.Response) {}
 }
 
 enum AccountType {
@@ -110,5 +111,22 @@ message CreateAccount {
   message CreatedEvent {
     uint64 version = 1;
     Account account = 2;
+  }
+}
+
+message RecordJournalEntry {
+  message Request {
+    JournalEntry journal_entry = 1;
+  }
+
+  message Response {
+    uint32 code = 1;
+    string message = 2;
+    string reserved = 3; // leaderHint if the persistence is backed by Raft
+  }
+
+  message RecordedEvent {
+    uint64 version = 1;
+    JournalEntry journal_entry = 2;
   }
 }

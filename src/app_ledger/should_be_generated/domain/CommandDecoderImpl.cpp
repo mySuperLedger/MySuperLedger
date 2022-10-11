@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "commands/ConfigureAccountMetadataCommand.h"
 #include "commands/CreateAccountCommand.h"
+#include "commands/RecordJournalEntryCommand.h"
 #include "common_types.h"
 
 namespace gringofts {
@@ -34,6 +35,11 @@ std::unique_ptr<Command> CommandDecoderImpl::decodeCommandFromString(
     }
     case CONFIGURE_ACCOUNT_METADATA_COMMAND: {
       command = std::make_unique<ConfigureAccountMetadataCommand>(
+          metaData.getCreatedTimeInNanos(), std::string(payload));
+      break;
+    }
+    case RECORD_JOURNAL_ENTRY_COMMAND: {
+      command = std::make_unique<RecordJournalEntryCommand>(
           metaData.getCreatedTimeInNanos(), std::string(payload));
       break;
     }

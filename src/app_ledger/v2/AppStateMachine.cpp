@@ -102,6 +102,21 @@ StateMachine &AppStateMachine::apply(const AccountCreatedEvent &event) {
   return *this;
 }
 
+ProcessHint AppStateMachine::process(const RecordJournalEntryCommand &command,
+                                     std::vector<std::shared_ptr<Event>> *events) const {
+  ProcessHint hint;
+  hint.mCode = HttpCode::OK;
+  hint.mMessage = "Success";
+
+  /// TODO: dedup
+
+  return hint;
+}
+
+StateMachine &AppStateMachine::apply(const JournalEntryRecordedEvent &event) {
+  return *this;
+}
+
 }  // namespace v2
 }  // namespace ledger
 }  // namespace gringofts

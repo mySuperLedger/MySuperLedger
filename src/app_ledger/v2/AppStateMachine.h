@@ -93,10 +93,13 @@ class AppStateMachine : public ledger::AppStateMachine {
                       std::vector<std::shared_ptr<Event>> *events) const override;
   ProcessHint process(const CreateAccountCommand &command,
                       std::vector<std::shared_ptr<Event>> *events) const override;
+  ProcessHint process(const RecordJournalEntryCommand &command,
+                      std::vector<std::shared_ptr<Event>> *events) const override;
 
   /// event appliers
   StateMachine &apply(const AccountMetadataConfiguredEvent &event) override;
   StateMachine &apply(const AccountCreatedEvent &event) override;
+  StateMachine &apply(const JournalEntryRecordedEvent &event) override;
 
   /// callbacks
   virtual void onAccountInserted(const Account &account) {}

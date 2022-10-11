@@ -15,7 +15,8 @@ limitations under the License.
 #include "AppStateMachine.h"
 #include "should_be_generated/domain/common_types.h"
 
-namespace gringofts::ledger {
+namespace gringofts {
+namespace ledger {
 
 AppStateMachine::AppStateMachine() {
   registerCommandProcessor(CONFIGURE_ACCOUNT_METADATA_COMMAND,
@@ -28,6 +29,10 @@ AppStateMachine::AppStateMachine() {
                                                           std::vector<std::shared_ptr<gringofts::Event>> *events) {
     return this->process(dynamic_cast<const CreateAccountCommand &>(command), events);
   });
+  registerCommandProcessor(RECORD_JOURNAL_ENTRY_COMMAND, [this](const gringofts::Command &command,
+                                                                std::vector<std::shared_ptr<gringofts::Event>> *events) {
+    return this->process(dynamic_cast<const RecordJournalEntryCommand &>(command), events);
+  });
 
   registerEventApplier(ACCOUNT_METADATA_CONFIGURED_EVENT,
                        [this](const gringofts::Event &event) -> gringofts::StateMachine & {
@@ -36,6 +41,10 @@ AppStateMachine::AppStateMachine() {
   registerEventApplier(ACCOUNT_CREATED_EVENT, [this](const gringofts::Event &event) -> gringofts::StateMachine & {
     return this->apply(dynamic_cast<const AccountCreatedEvent &>(event));
   });
+  registerEventApplier(JOURNAL_ENTRY_RECORDED_EVENT,
+                       [this](const gringofts::Event &event) -> gringofts::StateMachine & {
+                         return this->apply(dynamic_cast<const JournalEntryRecordedEvent &>(event));
+                       });
 }
 
 ProcessHint AppStateMachine::processCommandAndApply(
@@ -50,4 +59,5 @@ ProcessHint AppStateMachine::processCommandAndApply(
   }
   return hint;
 }
-}  // namespace gringofts::ledger
+}  // namespace ledger
+}  // namespace gringofts
