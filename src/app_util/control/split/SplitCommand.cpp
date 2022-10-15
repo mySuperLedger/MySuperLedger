@@ -14,7 +14,9 @@ limitations under the License.
 #include "SplitCommand.h"
 
 #include <unordered_set>
+
 #include <absl/strings/str_format.h>
+
 #include "SplitEvent.h"
 
 namespace gringofts::app::ctrl::split {
@@ -54,7 +56,7 @@ ProcessHint SplitCommand::process(const CtrlState &state,
   if (state.hasState()) {
     auto epoch = state.epoch();
     if (mRequest.epoch() < epoch) {
-      return ProcessHint{400, absl::StrFormat("epoch should be greater than %d", epoch)};
+      return ProcessHint{400, absl::StrFormat("epoch should be greater than %u", epoch)};
     } else if (mRequest.epoch() == epoch) {
       if (mRequest.planid() == state.planId()) {
         return ProcessHint{201, "deduped"};

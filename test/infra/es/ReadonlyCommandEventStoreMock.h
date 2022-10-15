@@ -26,65 +26,34 @@ class ReadonlyCommandEventStoreMock : public ReadonlyCommandEventStore {
  public:
   ReadonlyCommandEventStoreMock() {}
 
-  MOCK_METHOD0(init, void());
-  MOCK_METHOD1(loadNextEvent, std::unique_ptr<Event>(
+  MOCK_METHOD(void, init, ());
+  MOCK_METHOD(std::unique_ptr<Event>, loadNextEvent, (
       const EventDecoder &eventDecoder));
-  MOCK_METHOD1(loadNextCommand, std::unique_ptr<Command>(
+  MOCK_METHOD(std::unique_ptr<Command>, loadNextCommand, (
       const CommandDecoder &commandDecoder));
 
-  MOCK_METHOD2(loadCommandAfter, std::unique_ptr<Command>(Id
-      prevCommandId,
+  MOCK_METHOD(std::unique_ptr<Command>, loadCommandAfter, (
+      Id prevCommandId,
       const CommandDecoder &commandDecoder));
 
-  MOCK_METHOD2(loadNextCommandEvents, CommandEventsOpt(
+  MOCK_METHOD(CommandEventsOpt, loadNextCommandEvents, (
       const CommandDecoder &commandDecoder,
       const EventDecoder &eventDecoder));
 
-  MOCK_METHOD5(loadCommandEventsList, uint64_t(
+  MOCK_METHOD(uint64_t, loadCommandEventsList, (
       const CommandDecoder &commandDecoder,
       const EventDecoder &eventDecoder,
       Id commandId,
       uint64_t size,
       CommandEventsList * bundles));
 
-  MOCK_CONST_METHOD0(getCurrentOffset, uint64_t());
+  MOCK_METHOD(uint64_t, getCurrentOffset, (), (const));
 
-  MOCK_METHOD1(setCurrentOffset, void(uint64_t));
+  MOCK_METHOD(void, setCurrentOffset, (uint64_t));
 
-  MOCK_METHOD1(truncatePrefix, void(uint64_t));
+  MOCK_METHOD(void, truncatePrefix, (uint64_t));
 };
 
 }  /// namespace gringofts
-
-namespace testing {
-// An implement of set arg pointee for ReadonlyCommandEventStore::CommandEventsList only.
-template <size_t N>
-class SetMovePointeeAction {
- public:
-  // Constructs an action that sets the variable pointed to by the
-  // N-th function argument to 'value'.
-  explicit SetMovePointeeAction(gringofts::ReadonlyCommandEventStore::CommandEventsList* commandEventsList)
-  : mCommandEventsList(commandEventsList) {}
-
-  template <typename Result, typename ArgumentTuple>
-  void Perform(const ArgumentTuple& args) const {
-    internal::CompileAssertTypesEqual<void, Result>();
-    gringofts::ReadonlyCommandEventStore::CommandEventsList& commandEventsList = *::testing::get<N>(args);
-    commandEventsList = std::move(*mCommandEventsList);
-  }
-
- private:
-  mutable gringofts::ReadonlyCommandEventStore::CommandEventsList* mCommandEventsList;
-};
-
-// Creates an action that sets the variable pointed by the N-th
-// (0-based) function argument to 'value'.
-template <size_t N>
-PolymorphicAction<SetMovePointeeAction<N> >
-SetMovePointee(gringofts::ReadonlyCommandEventStore::CommandEventsList* commandEventsList) {
-  return MakePolymorphicAction(SetMovePointeeAction<N>(commandEventsList));
-}
-
-}  /// namespace testing
 
 #endif  // TEST_INFRA_ES_READONLYCOMMANDEVENTSTOREMOCK_H_

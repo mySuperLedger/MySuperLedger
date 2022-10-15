@@ -21,18 +21,6 @@ sudo apt-get update -y &&
   wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz &&
   tar -xzvf cmake-$version.$build.tar.gz &&
   mv cmake-$version.$build cmake
-# download and install clang/clang++ 6.0.1
-CLANG6=$(clang-6.0 --version | grep "6.0")
-if [ -z "$CLANG6" ]; then
-  wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add - &&
-    sudo apt-get install -y software-properties-common &&
-    sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main" &&
-    sudo apt-get update -y &&
-    sudo apt-get install -y clang-6.0
-  checkLastSuccess "install clang 6.0 fails"
-else
-  echo "clang 6.0 has been installed, skip"
-fi
 # download and install gcc/g++
 GCC9=$(g++-9 --version | grep "9")
 if [ -z "$GCC9" ]; then
@@ -56,11 +44,11 @@ git config --global https.postBuffer 1048576000
 git config --global --unset http.proxy
 git config --global --unset https.proxy
 git config --global http.sslVerify false
-cd ~/temp && version=1.16 && build=1 &&
+cd ~/temp && version=1.26 && build=0 &&
   git clone https://github.com/grpc/grpc &&
   cd grpc && git fetch --all --tags --prune &&
   git checkout tags/v$version.$build -b v$version.$build &&
-  git submodule update --init
+  git submodule update --init --recursive
 # download and install pre-requisites for protobuf and grpc
 sudo apt-get install -y autoconf automake libtool curl make unzip libssl-dev
 # download and install pre-requisites for rocksdb

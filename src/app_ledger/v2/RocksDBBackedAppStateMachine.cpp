@@ -119,7 +119,7 @@ void RocksDBBackedAppStateMachine::closeRocksDB(std::shared_ptr<rocksdb::DB> *db
   /// dbPtr should be the last shared_ptr pointing to DB, we leverage it to delete DB.
   (*dbPtr).reset();
 
-  SPDLOG_INFO("close RocksDB, timeCost: {}ms");
+  SPDLOG_INFO("RocksDB closed");
 }
 
 void RocksDBBackedAppStateMachine::flushToRocksDB() {

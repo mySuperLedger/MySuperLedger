@@ -30,7 +30,6 @@ set(GRINGOFTS_MONITOR_SRC
         monitor/santiago/Server.cpp
         monitor/MonitorCenter.cpp)
 
-
 set(GRINGOFTS_UTIL_SRC
         util/BigDecimal.cpp
         util/ClusterInfo.cpp

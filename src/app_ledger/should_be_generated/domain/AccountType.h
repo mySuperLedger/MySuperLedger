@@ -14,6 +14,8 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNTTYPE_H_
 #define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNTTYPE_H_
 
+#include <spdlog/fmt/ostr.h>
+
 #include "../../generated/grpc/ledger.pb.h"
 
 namespace gringofts {
@@ -29,33 +31,13 @@ enum class AccountType {
   Expense = 6,
 };
 
+std::ostream &operator<<(std::ostream &os, AccountType accountType);
+
 class AccountTypeUtil final {
  public:
-  static AccountType typeOf(protos::AccountType accountType) {
-    switch (accountType) {
-      case protos::AccountType::Unknown:return AccountType::Unknown;
-      case protos::AccountType::Asset:return AccountType::Asset;
-      case protos::AccountType::Liability:return AccountType::Liability;
-      case protos::AccountType::Capital:return AccountType::Capital;
-      case protos::AccountType::Income:return AccountType::Income;
-      case protos::AccountType::CostOfGoodsSold:return AccountType::CostOfGoodsSold;
-      case protos::AccountType::Expense:return AccountType::Expense;
-      default: return AccountType::Unknown;
-    }
-  }
+  static AccountType typeOf(protos::AccountType accountType);
 
-  static protos::AccountType toType(AccountType accountType) {
-    switch (accountType) {
-      case AccountType::Unknown: return protos::AccountType::Unknown;
-      case AccountType::Asset: return protos::AccountType::Asset;
-      case AccountType::Liability:return protos::AccountType::Liability;
-      case AccountType::Capital:return protos::AccountType::Capital;
-      case AccountType::Income:return protos::AccountType::Income;
-      case AccountType::CostOfGoodsSold:return protos::AccountType::CostOfGoodsSold;
-      case AccountType::Expense:return protos::AccountType::Expense;
-      default: return protos::AccountType::Unknown;
-    }
-  }
+  static protos::AccountType toType(AccountType accountType);
 };
 }  ///  namespace ledger
 }  ///  namespace gringofts
