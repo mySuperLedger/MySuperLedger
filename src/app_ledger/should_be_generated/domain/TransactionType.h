@@ -14,6 +14,8 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_TRANSACTIONTYPE_H_
 #define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_TRANSACTIONTYPE_H_
 
+#include <spdlog/fmt/ostr.h>
+
 #include "../../generated/grpc/ledger.pb.h"
 
 namespace gringofts {
@@ -25,25 +27,13 @@ enum class TransactionType {
   Credit = 2,
 };
 
+std::ostream &operator<<(std::ostream &os, TransactionType accountType);
+
 class TransactionTypeUtil final {
  public:
-  static TransactionType typeOf(protos::TransactionType transactionType) {
-    switch (transactionType) {
-      case protos::TransactionType::UnknownTransactionType:return TransactionType::Unknown;
-      case protos::TransactionType::Debit:return TransactionType::Debit;
-      case protos::TransactionType::Credit:return TransactionType::Credit;
-      default: return TransactionType::Unknown;
-    }
-  }
+  static TransactionType typeOf(protos::TransactionType transactionType);
 
-  static protos::TransactionType toType(TransactionType transactionType) {
-    switch (transactionType) {
-      case TransactionType::Unknown: return protos::TransactionType::UnknownTransactionType;
-      case TransactionType::Debit: return protos::TransactionType::Debit;
-      case TransactionType::Credit:return protos::TransactionType::Credit;
-      default: return protos::TransactionType::UnknownTransactionType;
-    }
-  }
+  static protos::TransactionType toType(TransactionType transactionType);
 };
 }  ///  namespace ledger
 }  ///  namespace gringofts

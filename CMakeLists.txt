@@ -213,9 +213,10 @@ include_directories(third_party/inih/cpp)
 
 # abseil-cpp
 set(CMAKE_CXX_STANDARD 17)
+set(ABSL_PROPAGATE_CXX_STD ON)
 add_subdirectory(third_party/abseil-cpp EXCLUDE_FROM_ALL)
 include_directories(third_party/abseil-cpp)
-set(ABSL_LIBS absl::strings absl::base absl::str_format)
+set(ABSL_LIBS absl::base absl::strings absl::str_format)
 
 # prometheus
 add_subdirectory(third_party/prometheus-cpp EXCLUDE_FROM_ALL)
@@ -262,7 +263,7 @@ function(check_lib_exist LIB_NAME)
     set(PATH_VAR_NAME "${LIB_NAME}_PATH")
     find_library(${PATH_VAR_NAME} NAMES ${LIB_NAME})
     if ("${${PATH_VAR_NAME}}" STREQUAL "${PATH_VAR_NAME}-NOTFOUND")
-        ## sending warrning allows user to compile the lib without unnecessary dependency
+        ## sending warning allows user to compile the lib without unnecessary dependency
         message(WARNING "can not find library ${LIB_NAME}")
     else ()
         message(STATUS "found library ${LIB_NAME} at ${${PATH_VAR_NAME}}")
@@ -274,8 +275,8 @@ check_lib_exist(sqlite3)
 
 
 # collect all libs when they all exist
-set(GRINGOFTS_LIBRARIES pthread sqlite3.a ${ABSL_LIBS} ${OPENSSL_LIBS} ${Boost_LIBRARIES}
-        ${MONITOR_LIBS} ${ROCKSDB_LIBS} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} lib_inih dl)
+set(GRINGOFTS_LIBRARIES pthread sqlite3.a dl ${ABSL_LIBS} ${OPENSSL_LIBS} ${Boost_LIBRARIES}
+        ${MONITOR_LIBS} ${ROCKSDB_LIBS} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} lib_inih)
 
 # Protobuf build by cmake
 include(cmake/protobuf/ProtoLibBuild.cmake)

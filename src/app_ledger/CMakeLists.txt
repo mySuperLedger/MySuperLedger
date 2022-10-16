@@ -21,8 +21,10 @@ set(APP_LEDGER_AUTOGEN
         AppStateMachine.cpp
         should_be_generated/app/App.cpp
         should_be_generated/app/RequestReceiver.cpp
+        should_be_generated/domain/AccountTypeUtil.cpp
         should_be_generated/domain/CommandDecoderImpl.cpp
         should_be_generated/domain/EventDecoderImpl.cpp
+        should_be_generated/domain/TransactionTypeUtil.cpp
         should_be_generated/domain/commands/ConfigureAccountMetadataCommand.cpp
         should_be_generated/domain/commands/CreateAccountCommand.cpp
         should_be_generated/domain/commands/RecordJournalEntryCommand.cpp
@@ -49,7 +51,7 @@ add_library(app_ledger STATIC
         ${APP_LEDGER_AUTOGEN}
         ${APP_LEDGER_SRC})
 
-add_dependencies(app_ledger ledger_proto_library)
+add_dependencies(app_ledger ledger_proto_library gringofts_app_util gringofts_infra)
 target_link_libraries(app_ledger ledger_proto_library)
 
 # executables

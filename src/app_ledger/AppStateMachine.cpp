@@ -29,8 +29,9 @@ AppStateMachine::AppStateMachine() {
                                                           std::vector<std::shared_ptr<gringofts::Event>> *events) {
     return this->process(dynamic_cast<const CreateAccountCommand &>(command), events);
   });
-  registerCommandProcessor(RECORD_JOURNAL_ENTRY_COMMAND, [this](const gringofts::Command &command,
-                                                                std::vector<std::shared_ptr<gringofts::Event>> *events) {
+  registerCommandProcessor(RECORD_JOURNAL_ENTRY_COMMAND, [this](
+      const gringofts::Command &command,
+      std::vector<std::shared_ptr<gringofts::Event>> *events) {
     return this->process(dynamic_cast<const RecordJournalEntryCommand &>(command), events);
   });
 
