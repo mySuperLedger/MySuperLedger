@@ -73,6 +73,10 @@ class JournalLine {
     return mNominalCode;
   }
 
+  Amount amount() const {
+    return mAmount;
+  }
+
   bool isSame(const JournalLine &another) const {
     if (mVersion != another.mVersion) {
       SPDLOG_WARN("version is not the same, {} vs {}", mVersion, another.mVersion);

@@ -76,6 +76,22 @@ class Amount {
     return true;
   }
 
+  Amount &operator+=(const Amount &other) {
+    /// later to support multiple versions
+    assert(other.mVersion == mVersion);
+    mValue += other.mValue;
+
+    return *this;
+  }
+
+  bool operator==(const Amount &rhs) const {
+    return mVersion == rhs.mVersion && mValue == rhs.mValue;
+  }
+
+  bool operator!=(const Amount &rhs) const {
+    return !(*this == rhs);
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   uint64_t mValue;

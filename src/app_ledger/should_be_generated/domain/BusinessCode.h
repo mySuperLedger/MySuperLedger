@@ -23,6 +23,11 @@ class BusinessCode {
   static constexpr int ACCOUNT_ALREADY_EXISTS = 1000;
   static constexpr int ACCOUNT_METADATA_RANGE_OVERLAP = 1001;
   static constexpr int ACCOUNT_METADATA_RANGE_NOT_COVER_EXISTING_ACCOUNT = 1002;
+  static constexpr int JOURNAL_ENTRY_ALREADY_PROCESSED = 1003;
+  static constexpr int ACCOUNT_IN_JOURNAL_ENTRY_NOT_EXIST = 1004;
+  static constexpr int NO_DEBIT_IN_JOURNAL_ENTRY = 1005;
+  static constexpr int NO_CREDIT_IN_JOURNAL_ENTRY = 1006;
+  static constexpr int CREDIT_NOT_EQUAL_TO_DEBIT = 1007;
 };
 
 }  // namespace ledger

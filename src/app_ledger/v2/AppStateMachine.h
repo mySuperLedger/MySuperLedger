@@ -107,8 +107,13 @@ class AppStateMachine : public ledger::AppStateMachine {
 
  protected:
   /// state owned by both Memory-backed SM and RocksDB-backed SM
-  std::unordered_map<uint64_t, Account> mCoA;  // Chart of Accounts
-  std::unordered_map<AccountType, AccountMetadata> mAccountMetadata;
+  /// key: dedupId, value: validTime
+  /// TODO(ISSUE-20): only keep dedupIds no older than 6 months to make the rocksdb size consistent
+  std::map<std::string, uint64_t> mDoneMap;
+  /// key: account's nominalCode, value: account
+  std::map<uint64_t, Account> mCoA;  // Chart of Accounts
+  /// key: accountType, value: metaData
+  std::map<AccountType, AccountMetadata> mAccountMetadata;
 };
 
 }  /// namespace v2

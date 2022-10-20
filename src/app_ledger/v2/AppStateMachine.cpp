@@ -13,6 +13,9 @@ limitations under the License.
 **************************************************************************/
 
 #include "AppStateMachine.h"
+
+#include <absl/strings/str_format.h>
+
 #include "../../infra/util/HttpCode.h"
 #include "../should_be_generated/domain/BusinessCode.h"
 
@@ -108,12 +111,65 @@ ProcessHint AppStateMachine::process(const RecordJournalEntryCommand &command,
   hint.mCode = HttpCode::OK;
   hint.mMessage = "Success";
 
-  /// TODO: dedup
+  /// validation steps
+  /// 1. dedup
+  const auto &journalEntryOpt = command.journalEntryOpt();
+  assert(journalEntryOpt);  // request needs to pass the validation before it can be processed here
+  const auto &journalEntry = *journalEntryOpt;
+  if (mDoneMap.find(journalEntry.id()) != mDoneMap.end()) {
+    hint.mCode = BusinessCode::JOURNAL_ENTRY_ALREADY_PROCESSED;
+    hint.mMessage = "journal entry has already processed";
+    return hint;
+  } else {
+    /// TODO(ISSUE-21): do not load all dedup ids when becoming new leader,
+    /// and read dedup id from rocksdb snapshot instead in CPL
+  }
+  /// 2. every account must exist
+  /// 3. at least one credit and one debit journal lines
+  /// 4. sum of credits' amount == sum of debits' amount
+  const auto &journalLines = journalEntry.journalLines();
+  uint32_t debitCnt = 0;
+  uint32_t creditCnt = 0;
+  Amount debitSum, creditSum;
+  for (const auto &journalLine : journalLines) {
+    auto nominalCode = journalLine.nominalCode();
+    if (mCoA.find(nominalCode) == mCoA.end()) {
+      hint.mCode = BusinessCode::ACCOUNT_IN_JOURNAL_ENTRY_NOT_EXIST;
+      hint.mMessage = absl::StrFormat("account %u does not exist", nominalCode);
+      return hint;
+    }
+    if (journalLine.type() == TransactionType::Debit) {
+      debitCnt++;
+      debitSum += journalLine.amount();
+    }
+    if (journalLine.type() == TransactionType::Credit) {
+      creditCnt++;
+      creditSum += journalLine.amount();
+    }
+  }
+  if (debitCnt == 0) {
+    hint.mCode = BusinessCode::NO_DEBIT_IN_JOURNAL_ENTRY;
+    hint.mMessage = absl::StrFormat("no debit in journal entry");
+    return hint;
+  }
+  if (creditCnt == 0) {
+    hint.mCode = BusinessCode::NO_CREDIT_IN_JOURNAL_ENTRY;
+    hint.mMessage = absl::StrFormat("no credit in journal entry");
+    return hint;
+  }
+  if (debitSum != creditSum) {
+    hint.mCode = BusinessCode::CREDIT_NOT_EQUAL_TO_DEBIT;
+    hint.mMessage = absl::StrFormat("credit amount not equal to debit amount");
+    return hint;
+  }
 
   return hint;
 }
 
 StateMachine &AppStateMachine::apply(const JournalEntryRecordedEvent &event) {
+  /// 1. update doneMap
+  /// 2. update account's balance
+
   return *this;
 }
 

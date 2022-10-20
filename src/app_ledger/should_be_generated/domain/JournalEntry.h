@@ -112,6 +112,18 @@ class JournalEntry {
     return true;
   }
 
+  const std::string &id() const {
+    return mId;
+  }
+
+  uint64_t validTime() const {
+    return mValidTime;
+  }
+
+  const std::vector<JournalLine> &journalLines() const {
+    return mJournalLines;
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   std::string mId;  // uniquely identify this entry
