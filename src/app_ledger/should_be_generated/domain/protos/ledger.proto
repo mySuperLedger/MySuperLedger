@@ -30,7 +30,7 @@ message Account {
   uint64 nominal_code = 3;  // since v1
   string name = 4;  // since v1
   string desc = 5;  // since v1
-  uint64 currency_code = 6;  // since v1
+  uint64 iso4217_currency_code = 6;  // since v1
   Balance balance = 7;  // since v1
 }
 
@@ -67,7 +67,7 @@ message JournalLine {
   uint64 nominal_code = 2;  // since v1
   TransactionType transaction_type = 3;  // since v1
   Amount amount = 4;  // since v1
-  uint64 currency_code = 5;  // since v1
+  uint64 iso4217_currency_code = 5;  // since v1
   string ref_data = 6;  // since v1
 }
 

@@ -56,6 +56,8 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   /// callbacks
   void onAccountInserted(const Account &account) override;
   void onAccountMetadataUpdated(const AccountMetadata &accountMetadata) override;
+  void onBookkeepingProcessed(std::string dedupId, uint64_t validTime) override;
+  void onAccountUpdated(const Account &account) override;
 
  private:
   friend class MemoryBackedAppStateMachine;

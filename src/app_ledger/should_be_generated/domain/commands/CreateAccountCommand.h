@@ -37,6 +37,9 @@ class CreateAccountCommand : public Command {
   }
 
   std::string verifyCommand() const override {
+    if (mOrigRequest.account().type() == protos::AccountType::UnknownAccountType) {
+      return "account type should not be unknown";
+    }
     return kVerifiedSuccess;
   }
 

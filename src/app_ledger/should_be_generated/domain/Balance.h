@@ -76,6 +76,20 @@ class Balance {
     return true;
   }
 
+  Balance &operator+=(const Amount &amount) {
+    /// later to support multiple versions
+    mValue += amount.value();
+
+    return *this;
+  }
+
+  Balance &operator-=(const Amount &amount) {
+    /// later to support multiple versions
+    mValue -= amount.value();
+
+    return *this;
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   uint64_t mValue;

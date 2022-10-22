@@ -92,6 +92,10 @@ class Amount {
     return !(*this == rhs);
   }
 
+  uint64_t value() const {
+    return mValue;
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   uint64_t mValue;

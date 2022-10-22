@@ -275,8 +275,8 @@ check_lib_exist(sqlite3)
 
 
 # collect all libs when they all exist
-set(GRINGOFTS_LIBRARIES pthread sqlite3.a dl ${ABSL_LIBS} ${OPENSSL_LIBS} ${Boost_LIBRARIES}
-        ${MONITOR_LIBS} ${ROCKSDB_LIBS} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} lib_inih)
+set(GRINGOFTS_LIBRARIES pthread sqlite3.a ${ABSL_LIBS} ${OPENSSL_LIBS} ${Boost_LIBRARIES}
+        ${MONITOR_LIBS} ${ROCKSDB_LIBS} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} lib_inih dl)
 
 # Protobuf build by cmake
 include(cmake/protobuf/ProtoLibBuild.cmake)

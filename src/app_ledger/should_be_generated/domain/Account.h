@@ -15,6 +15,7 @@ limitations under the License.
 #define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNT_H_
 
 #include "AccountType.h"
+#include "Amount.h"
 #include "Balance.h"
 
 namespace gringofts {
@@ -37,7 +38,7 @@ class Account {
         mNominalCode = account.nominal_code();
         mName = account.name();
         mDesc = account.desc();
-        mCurrencyCode = account.currency_code();
+        mISO4217CurrencyCode = account.iso4217_currency_code();
         break;
       }
       default: {
@@ -56,7 +57,7 @@ class Account {
         account.set_nominal_code(mNominalCode);
         account.set_name(mName);
         account.set_desc(mDesc);
-        account.set_currency_code(mCurrencyCode);
+        account.set_iso4217_currency_code(mISO4217CurrencyCode);
         break;
       }
       default: {
@@ -72,6 +73,10 @@ class Account {
 
   uint64_t nominalCode() const {
     return mNominalCode;
+  }
+
+  uint64_t iso4217CurrencyCode() const {
+    return mISO4217CurrencyCode;
   }
 
   bool isSame(const Account &another) const {
@@ -101,8 +106,8 @@ class Account {
         SPDLOG_WARN("desc is not the same, {} vs {}", mDesc, another.mDesc);
         return false;
       }
-      if (mCurrencyCode != another.mCurrencyCode) {
-        SPDLOG_WARN("currency code is not the same, {} vs {}", mCurrencyCode, another.mCurrencyCode);
+      if (mISO4217CurrencyCode != another.mISO4217CurrencyCode) {
+        SPDLOG_WARN("currency code is not the same, {} vs {}", mISO4217CurrencyCode, another.mISO4217CurrencyCode);
         return false;
       }
     } else {
@@ -113,13 +118,88 @@ class Account {
     return true;
   }
 
+  /**
+   * | Account Type |   Debit  |  Credit  |
+   * --------------------------------------
+   * |    Assets    | Increase | Decrease |
+   * | Liabilities  | Decrease | Increase |
+   * |   Income     | Decrease | Increase |
+   * |   Expenses   | Increase | Decrease |
+   */
+
+  void applyCredit(Amount amount) {
+    switch (mAccountType) {
+      case AccountType::Asset: {
+        mBalance -= amount;
+        break;
+      }
+      case AccountType::Capital: {
+        mBalance -= amount;
+        break;
+      }
+      case AccountType::CostOfGoodsSold: {
+        mBalance -= amount;
+        break;
+      }
+      case AccountType::Expense: {
+        mBalance -= amount;
+        break;
+      }
+      case AccountType::Income: {
+        mBalance += amount;
+        break;
+      }
+      case AccountType::Liability: {
+        mBalance += amount;
+        break;
+      }
+      default: {
+        SPDLOG_ERROR("If it goes here, it means account type is not validated beforehand");
+        exit(1);
+      }
+    }
+  }
+
+  void applyDebit(Amount amount) {
+    switch (mAccountType) {
+      case AccountType::Asset: {
+        mBalance += amount;
+        break;
+      }
+      case AccountType::Capital: {
+        mBalance += amount;
+        break;
+      }
+      case AccountType::CostOfGoodsSold: {
+        mBalance += amount;
+        break;
+      }
+      case AccountType::Expense: {
+        mBalance += amount;
+        break;
+      }
+      case AccountType::Income: {
+        mBalance -= amount;
+        break;
+      }
+      case AccountType::Liability: {
+        mBalance -= amount;
+        break;
+      }
+      default: {
+        SPDLOG_ERROR("If it goes here, it means account type is not validated beforehand");
+        exit(1);
+      }
+    }
+  }
+
  private:
   uint64_t mVersion;  // keep every version for backward-compatibility
   AccountType mAccountType = AccountType::Unknown;
   uint64_t mNominalCode;  // unique id in CoA
   std::string mName;  // a short name without no space
   std::string mDesc;  // a long description to explain what the account is for
-  uint64_t mCurrencyCode;  // ISO-4217 currency code
+  uint64_t mISO4217CurrencyCode;  // ISO-4217 currency code
   Balance mBalance;  // how much left in this account
 };
 

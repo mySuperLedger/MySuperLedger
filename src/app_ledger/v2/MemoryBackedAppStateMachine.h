@@ -35,6 +35,7 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
    */
   void swapState(StateMachine *anotherStateMachine) override {
     auto &another = dynamic_cast<RocksDBBackedAppStateMachine &>(*anotherStateMachine);
+    std::swap(mDoneMap, another.mDoneMap);
     std::swap(mCoA, another.mCoA);
     std::swap(mAccountMetadata, another.mAccountMetadata);
 

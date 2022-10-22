@@ -28,6 +28,8 @@ class BusinessCode {
   static constexpr int NO_DEBIT_IN_JOURNAL_ENTRY = 1005;
   static constexpr int NO_CREDIT_IN_JOURNAL_ENTRY = 1006;
   static constexpr int CREDIT_NOT_EQUAL_TO_DEBIT = 1007;
+  static constexpr int INVALID_TRANSACTION_TYPE = 1008;
+  static constexpr int JOURNAL_LINE_ISO_CURRENCY_CODE_DOES_NOT_MATCH_ACCOUNT = 1009;
 };
 
 }  // namespace ledger

@@ -37,6 +37,9 @@ class RecordJournalEntryCommand : public Command {
   }
 
   std::string verifyCommand() const override {
+    if (!mOrigRequest.has_journal_entry()) {
+      return "Journal entry is required";
+    }
     return kVerifiedSuccess;
   }
 

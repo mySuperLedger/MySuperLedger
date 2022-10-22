@@ -25,9 +25,9 @@ enum class AccountType {
   Unknown = 0,
   Asset = 1,
   Liability = 2,
-  Capital = 3,
+  Capital = 3,  /// a type of Asset
   Income = 4,
-  CostOfGoodsSold = 5,
+  CostOfGoodsSold = 5,  /// a type of Expense
   Expense = 6,
 };
 

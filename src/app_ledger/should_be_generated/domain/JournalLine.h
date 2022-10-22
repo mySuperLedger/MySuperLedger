@@ -35,7 +35,7 @@ class JournalLine {
         mNominalCode = journalLine.nominal_code();
         mTransactionType = TransactionTypeUtil::typeOf(journalLine.transaction_type());
         mAmount = Amount(journalLine.amount());
-        mCurrencyCode = journalLine.currency_code();
+        mISO4217CurrencyCode = journalLine.iso4217_currency_code();
         mRefData = journalLine.ref_data();
         break;
       }
@@ -53,7 +53,7 @@ class JournalLine {
         journalLine.set_transaction_type(TransactionTypeUtil::toType(mTransactionType));
         journalLine.set_nominal_code(mNominalCode);
         mAmount.encodeTo(*journalLine.mutable_amount());
-        journalLine.set_currency_code(mCurrencyCode);
+        journalLine.set_iso4217_currency_code(mISO4217CurrencyCode);
         journalLine.set_ref_data(mRefData);
 
         break;
@@ -77,6 +77,10 @@ class JournalLine {
     return mAmount;
   }
 
+  uint64_t iso4217CurrencyCode() const {
+    return mISO4217CurrencyCode;
+  }
+
   bool isSame(const JournalLine &another) const {
     if (mVersion != another.mVersion) {
       SPDLOG_WARN("version is not the same, {} vs {}", mVersion, another.mVersion);
@@ -96,8 +100,8 @@ class JournalLine {
         SPDLOG_WARN("amount is not the same");
         return false;
       }
-      if (mCurrencyCode != another.mCurrencyCode) {
-        SPDLOG_WARN("currency code is not the same, {} vs {}", mCurrencyCode, another.mCurrencyCode);
+      if (mISO4217CurrencyCode != another.mISO4217CurrencyCode) {
+        SPDLOG_WARN("currency code is not the same, {} vs {}", mISO4217CurrencyCode, another.mISO4217CurrencyCode);
         return false;
       }
       if (mRefData != another.mRefData) {
@@ -117,7 +121,7 @@ class JournalLine {
   uint64_t mNominalCode;  // unique account id in CoA
   TransactionType mTransactionType = TransactionType::Unknown;  // debit or credit
   Amount mAmount;
-  uint64_t mCurrencyCode;  // ISO-4217 currency code
+  uint64_t mISO4217CurrencyCode;  // ISO-4217 currency code
   std::string mRefData;  // ref data related to this journal line, e.g., receipt number, etc
 };
 
