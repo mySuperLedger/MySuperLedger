@@ -191,7 +191,11 @@ ProcessHint AppStateMachine::process(const RecordJournalEntryCommand &command,
 StateMachine &AppStateMachine::apply(const JournalEntryRecordedEvent &event) {
   /// 1. update doneMap
   const auto &journalEntry = event.journalEntry();
-  onBookkeepingProcessed(journalEntry.id(), journalEntry.validTime());
+  const auto &id = journalEntry.id();
+  auto validTime = journalEntry.validTime();
+  assert(mDoneMap.find(id) == mDoneMap.end());
+  mDoneMap[id] = validTime;
+  onBookkeepingProcessed(id, validTime);
   /// 2. update every account's balance
   for (const auto &journalLine : journalEntry.journalLines()) {
     auto nominalCode = journalLine.nominalCode();
