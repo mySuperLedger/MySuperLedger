@@ -191,7 +191,7 @@ TEST_F(LedgerAppStateMachineTest, CreateExistingAccount) {
     mRocksDBBackedStateMachine->applyEvent(*event);
   }
 
-  /// act
+  /// 2. act
   /// try to create an account that already exists
   auto command1 = createSampleCreateAccountCommand(protos::AccountType::Liability, 1000, 156);
   std::vector<std::shared_ptr<gringofts::Event>> events1;
@@ -216,7 +216,7 @@ TEST_F(LedgerAppStateMachineTest, ConfigureAccountMetadata) {
     mRocksDBBackedStateMachine->applyEvent(*event);
   }
 
-  /// act
+  /// 2. act
   /// create an account metadata
   auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 10, 2000);
   std::vector<std::shared_ptr<gringofts::Event>> events2;
@@ -253,7 +253,7 @@ TEST_F(LedgerAppStateMachineTest, AccountMetadataNotCoverExistingAccountNominalC
     mRocksDBBackedStateMachine->applyEvent(*event);
   }
 
-  /// act
+  /// 2. act
   /// create an account metadata
   auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 10, 900);
   std::vector<std::shared_ptr<gringofts::Event>> events2;
@@ -277,7 +277,7 @@ TEST_F(LedgerAppStateMachineTest, AccountMetadataRangeOverlap) {
     mRocksDBBackedStateMachine->applyEvent(*event);
   }
 
-  /// act
+  /// 2. act
   /// create another account metadata whose range overlaps
   auto command2 = createSampleConfigureAccountMetadataCommand(protos::AccountType::Asset, 50, 900);
   std::vector<std::shared_ptr<gringofts::Event>> events2;
@@ -291,7 +291,7 @@ TEST_F(LedgerAppStateMachineTest, AccountMetadataRangeOverlap) {
   EXPECT_TRUE(events2.empty());
 }
 
-TEST_F(LedgerAppStateMachineTest, BookkeepingOneJournalEntry) {
+TEST_F(LedgerAppStateMachineTest, BookkeepOneJournalEntry) {
   /// 1. arrange
   /// create two accounts
   auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
@@ -307,7 +307,7 @@ TEST_F(LedgerAppStateMachineTest, BookkeepingOneJournalEntry) {
     mRocksDBBackedStateMachine->applyEvent(*event);
   }
 
-  /// act
+  /// 2. act
   /// create two journal lines
   protos::Amount amountProto;
   amountProto.set_version(1);
@@ -341,6 +341,296 @@ TEST_F(LedgerAppStateMachineTest, BookkeepingOneJournalEntry) {
   mRocksDBBackedStateMachine->flushToRocksDB();
   mRocksDBBackedStateMachine->recoverSelf();
   EXPECT_TRUE(mInMemoryStateMachine->hasSameState(*mRocksDBBackedStateMachine));
+}
+
+TEST_F(LedgerAppStateMachineTest, BookkeepDeduplicatedJournalEntry) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  /// create two journal lines
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Debit, Amount(amountProto), 156, "refdata1");
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::JOURNAL_ENTRY_ALREADY_PROCESSED);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, AccountInJournalLineNotExist) {
+  /// 1. arrange
+  /// create two journal lines with non-existent accounts
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Debit, Amount(amountProto), 156, "refdata1");
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::ACCOUNT_IN_JOURNAL_ENTRY_NOT_EXIST);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, CcyInAccountMismatchCcyInJournalLine) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  /// create two journal lines with non-existent accounts
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Debit, Amount(amountProto), 158, "refdata1");
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::JOURNAL_LINE_ISO_CURRENCY_CODE_DOES_NOT_MATCH_ACCOUNT);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, NoCreditInJournalEntry) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  /// create two journal lines with non-existent accounts
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Debit, Amount(amountProto), 156, "refdata1");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::NO_CREDIT_IN_JOURNAL_ENTRY);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, NoDebitInJournalEntry) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  /// create two journal lines with non-existent accounts
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::NO_DEBIT_IN_JOURNAL_ENTRY);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, DebitNotEqualToCredit) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  /// create two journal lines with non-existent accounts
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(600);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Debit, Amount(amountProto), 156, "refdata1");
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  auto command4 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events4;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command4, &events4);
+  for (const auto &event : events4) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::CREDIT_NOT_EQUAL_TO_DEBIT);
+  EXPECT_TRUE(events4.empty());
+}
+
+TEST_F(LedgerAppStateMachineTest, InvalidJournalEntry) {
+  /// 1. arrange
+  /// create two accounts
+  auto command1 = createSampleCreateAccountCommand(protos::AccountType::Asset, 1000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events1;
+  mInMemoryStateMachine->processCommandAndApply(*command1, &events1);
+  for (const auto &event : events1) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+  auto command2 = createSampleCreateAccountCommand(protos::AccountType::Liability, 2000, 156);
+  std::vector<std::shared_ptr<gringofts::Event>> events2;
+  mInMemoryStateMachine->processCommandAndApply(*command2, &events2);
+  for (const auto &event : events2) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 2. act
+  /// create two journal lines
+  protos::Amount amountProto;
+  amountProto.set_version(1);
+  amountProto.set_value(500);
+  auto journalLine1 = createSampleV1JournalLine(1000, TransactionType::Unknown, Amount(amountProto), 156, "refdata1");
+  amountProto.set_value(500);
+  auto journalLine2 = createSampleV1JournalLine(2000, TransactionType::Credit, Amount(amountProto), 156, "refdata2");
+  std::vector<JournalLine> journalLines;
+  journalLines.push_back(journalLine1);
+  journalLines.push_back(journalLine2);
+  auto command3 = createSampleV1RecordJournalEntryCommand("dedup1", journalLines);
+  std::vector<std::shared_ptr<gringofts::Event>> events3;
+  auto result = mInMemoryStateMachine->processCommandAndApply(*command3, &events3);
+  for (const auto &event : events3) {
+    mRocksDBBackedStateMachine->applyEvent(*event);
+  }
+
+  /// 3. assert
+  EXPECT_EQ(result.mCode, BusinessCode::INVALID_TRANSACTION_TYPE);
+  EXPECT_TRUE(events3.empty());
 }
 
 }  // namespace ledger
