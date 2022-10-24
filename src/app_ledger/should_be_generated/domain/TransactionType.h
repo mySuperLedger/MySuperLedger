@@ -11,8 +11,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNTTYPE_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNTTYPE_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_TRANSACTIONTYPE_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_TRANSACTIONTYPE_H_
 
 #include <spdlog/fmt/ostr.h>
 
@@ -21,25 +21,21 @@ limitations under the License.
 namespace gringofts {
 namespace ledger {
 
-enum class AccountType {
+enum class TransactionType {
   Unknown = 0,
-  Asset = 1,
-  Liability = 2,
-  Capital = 3,  /// a type of Asset
-  Income = 4,
-  CostOfGoodsSold = 5,  /// a type of Expense
-  Expense = 6,
+  Debit = 1,
+  Credit = 2,
 };
 
-std::ostream &operator<<(std::ostream &os, AccountType accountType);
+std::ostream &operator<<(std::ostream &os, TransactionType accountType);
 
-class AccountTypeUtil final {
+class TransactionTypeUtil final {
  public:
-  static AccountType typeOf(protos::AccountType accountType);
+  static TransactionType typeOf(protos::TransactionType transactionType);
 
-  static protos::AccountType toType(AccountType accountType);
+  static protos::TransactionType toType(TransactionType transactionType);
 };
 }  ///  namespace ledger
 }  ///  namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_ACCOUNTTYPE_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_TRANSACTIONTYPE_H_

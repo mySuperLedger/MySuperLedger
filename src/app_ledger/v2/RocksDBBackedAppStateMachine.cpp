@@ -18,23 +18,6 @@ namespace gringofts {
 namespace ledger {
 namespace v2 {
 
-void RocksDBBackedAppStateMachine::setValue(uint64_t value) {
-  /// save in memory
-  mValue = value;
-
-  /// save in RocksDB
-  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DEFAULT],
-                                RocksDBConf::kValueKey, std::to_string(value));
-  if (!status.ok()) {
-    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
-    assert(0);
-  }
-}
-
-uint64_t RocksDBBackedAppStateMachine::getValue() const {
-  return mValue;
-}
-
 uint64_t RocksDBBackedAppStateMachine::recoverSelf() {
   /// write batch should be empty.
   assert(mWriteBatch.Count() == 0);
@@ -99,6 +82,7 @@ void RocksDBBackedAppStateMachine::openRocksDB(const std::string &walDir,
   columnFamilyDescriptors.emplace_back(RocksDBConf::kDefault, smallColumnFamilyOptions);
   columnFamilyDescriptors.emplace_back(RocksDBConf::kChartOfAccounts, columnFamilyOptions);
   columnFamilyDescriptors.emplace_back(RocksDBConf::kAccountMetadata, columnFamilyOptions);
+  columnFamilyDescriptors.emplace_back(RocksDBConf::kDoneMap, columnFamilyOptions);
 
   /// open DB
   rocksdb::DB *db;
@@ -152,19 +136,6 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
     assert(0);
   }
 
-  /// load value
-  status = mRocksDB->Get(rocksdb::ReadOptions(),
-                         mColumnFamilyHandles[RocksDBConf::DEFAULT],
-                         RocksDBConf::kValueKey, &value);
-  if (status.ok()) {
-    mValue = std::stoull(value);
-  } else if (status.IsNotFound()) {
-    mValue = 0;
-  } else {
-    SPDLOG_ERROR("Error in RocksDB: {}. Exiting...", status.ToString());
-    assert(0);
-  }
-
   /// load CoA
   rocksdb::Iterator *accountsIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
                                                           mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS]);
@@ -200,6 +171,20 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
   }
   assert(accountMetadataIter->status().ok());
   delete accountMetadataIter;
+
+  /// load DoneMap
+  rocksdb::Iterator *doneMapIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
+                                                         mColumnFamilyHandles[RocksDBConf::DONE_MAP]);
+  for (doneMapIter->SeekToFirst(); doneMapIter->Valid(); doneMapIter->Next()) {
+    const auto &key = doneMapIter->key();
+    const auto &val = doneMapIter->value();
+    auto dedupId = key.ToString();
+    assert(mDoneMap.find(dedupId) == mDoneMap.end());
+    auto validTime = std::stoull(val.ToString());
+    mDoneMap[dedupId] = validTime;
+  }
+  assert(doneMapIter->status().ok());
+  delete doneMapIter;
 }
 
 void RocksDBBackedAppStateMachine::onAccountMetadataUpdated(const AccountMetadata &accountMetadata) {
@@ -226,6 +211,34 @@ void RocksDBBackedAppStateMachine::onAccountInserted(const Account &account) {
   auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS],
                                 std::to_string(nominalCode),
                                 rocksdb::Slice(accountProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+}
+
+void RocksDBBackedAppStateMachine::onAccountUpdated(const gringofts::ledger::Account &account) {
+  rocksdb::ReadOptions readOptions;
+
+  auto nominalCode = account.nominalCode();
+  /// account must exist either in write batch or on-disk rocksdb
+  protos::Account accountProto;
+  account.encodeTo(accountProto);
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::CHART_OF_ACCOUNTS],
+                                std::to_string(nominalCode),
+                                rocksdb::Slice(accountProto.SerializeAsString()));
+  if (!status.ok()) {
+    SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
+    assert(0);
+  }
+}
+
+void RocksDBBackedAppStateMachine::onBookkeepingProcessed(std::string dedupId, uint64_t validTime) {
+  rocksdb::ReadOptions readOptions;
+
+  auto status = mWriteBatch.Put(mColumnFamilyHandles[RocksDBConf::DONE_MAP],
+                                dedupId,
+                                std::to_string(validTime));
   if (!status.ok()) {
     SPDLOG_ERROR("Error writing RocksDB: {}. Exiting...", status.ToString());
     assert(0);

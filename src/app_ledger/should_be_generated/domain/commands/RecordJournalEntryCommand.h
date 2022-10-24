@@ -12,21 +12,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 **************************************************************************/
 
-#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
-#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
+#ifndef SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_RECORDJOURNALENTRYCOMMAND_H_
+#define SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_RECORDJOURNALENTRYCOMMAND_H_
 
 #include "../../../../infra/es/Command.h"
 #include "../../../../infra/es/ProcessCommandStateMachine.h"
-#include "../Account.h"
+#include "../JournalEntry.h"
 
 namespace gringofts {
 namespace ledger {
 
-class CreateAccountCommand : public Command {
+class RecordJournalEntryCommand : public Command {
  public:
-  CreateAccountCommand(TimestampInNanos, const protos::CreateAccount::Request &origRequest);
+  RecordJournalEntryCommand(TimestampInNanos, const protos::RecordJournalEntry::Request &origRequest);
 
-  CreateAccountCommand(TimestampInNanos, const std::string &commandStr);
+  RecordJournalEntryCommand(TimestampInNanos, const std::string &commandStr);
 
   std::string encodeToString() const override {
     return mOrigRequest.SerializeAsString();
@@ -37,26 +37,26 @@ class CreateAccountCommand : public Command {
   }
 
   std::string verifyCommand() const override {
-    if (mOrigRequest.account().type() == protos::AccountType::UnknownAccountType) {
-      return "account type should not be unknown";
+    if (!mOrigRequest.has_journal_entry()) {
+      return "Journal entry is required";
     }
     return kVerifiedSuccess;
   }
 
-  const std::optional<Account> &accountOpt() const {
-    return mAccountOpt;
+  const std::optional<JournalEntry> &journalEntryOpt() const {
+    return mJournalEntryOpt;
   }
 
  private:
-  void tryInitAccount();
+  void tryInitJournalEntry();
   void onPersisted(const std::string &message) override;
   void onPersistFailed(uint32_t code, const std::string &errorMessage, std::optional<uint64_t> reserved) override;
 
-  protos::CreateAccount::Request mOrigRequest;
-  std::optional<Account> mAccountOpt;
+  protos::RecordJournalEntry::Request mOrigRequest;
+  std::optional<JournalEntry> mJournalEntryOpt;
 };
 
 }  ///  namespace ledger
 }  ///  namespace gringofts
 
-#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_CREATEACCOUNTCOMMAND_H_
+#endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_DOMAIN_COMMANDS_RECORDJOURNALENTRYCOMMAND_H_

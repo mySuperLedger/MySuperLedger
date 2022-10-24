@@ -21,13 +21,16 @@ set(APP_LEDGER_AUTOGEN
         AppStateMachine.cpp
         should_be_generated/app/App.cpp
         should_be_generated/app/RequestReceiver.cpp
-        should_be_generated/domain/AccountType.cpp
+        should_be_generated/domain/AccountTypeUtil.cpp
         should_be_generated/domain/CommandDecoderImpl.cpp
         should_be_generated/domain/EventDecoderImpl.cpp
+        should_be_generated/domain/TransactionTypeUtil.cpp
         should_be_generated/domain/commands/ConfigureAccountMetadataCommand.cpp
         should_be_generated/domain/commands/CreateAccountCommand.cpp
+        should_be_generated/domain/commands/RecordJournalEntryCommand.cpp
         should_be_generated/domain/events/AccountCreatedEvent.cpp
-        should_be_generated/domain/events/AccountMetadataConfiguredEvent.cpp)
+        should_be_generated/domain/events/AccountMetadataConfiguredEvent.cpp
+        should_be_generated/domain/events/JournalEntryRecordedEvent.cpp)
 
 set(APP_LEDGER_SRC
         v2/AppStateMachine.cpp

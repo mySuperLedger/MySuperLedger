@@ -55,7 +55,7 @@ target_link_libraries(gringofts_TestRunner app_ledger gringofts_app_util gringof
 
 # add coverage target here otherwise the app source code will not be covered
 set(COVERAGE_LCOV_EXCLUDES '/usr/include/*' '/usr/local/include/*' '*/BullseyeCoverage-8.16.4/include/*' 'gtest/*' 'test/*' 'build/*' '*/*Test*'
-        'third_party/*' 'CMakeFiles/*' 'src/app_demo/*' 'src/app_util/*'
+        'third_party/*' 'CMakeFiles/*' 'src/app_ledger/generated/*' 'src/app_util/generated/*'
         'src/infra/es/store/generated/*' 'src/infra/raft/generated/*' '*/*Main.cpp')
 setup_target_for_coverage_lcov(
         NAME gringofts_test_coverage_lcov
@@ -63,7 +63,7 @@ setup_target_for_coverage_lcov(
         DEPENDENCIES gringofts_TestRunner)
 
 set(COVERAGE_GCOVR_EXCLUDES '/usr/include/*','/usr/local/include/*','*/BullseyeCoverage-8.16.4/include/*','gtest/*','test/*','build/*','*/*Test*',
-        'third_party/*','CMakeFiles/*','src/app_demo/*','src/app_util/*',
+        'third_party/*','CMakeFiles/*','src/app_ledger/generated/*','src/app_util/generated/*',
         'src/infra/es/store/generated/*','src/infra/raft/generated/*','*/*Main.cpp')
 setup_target_for_coverage_gcovr_xml(
         NAME gringofts_test_coverage_cobertura

@@ -41,9 +41,11 @@ using ::grpc::ClientContext;
 // event types
 const Type ACCOUNT_CREATED_EVENT = 51;
 const Type ACCOUNT_METADATA_CONFIGURED_EVENT = 52;
+const Type JOURNAL_ENTRY_RECORDED_EVENT = 53;
 // command types
 const Type CREATE_ACCOUNT_COMMAND = 1;
 const Type CONFIGURE_ACCOUNT_METADATA_COMMAND = 2;
+const Type RECORD_JOURNAL_ENTRY_COMMAND = 3;
 
 namespace protobuf = ::google::protobuf;
 

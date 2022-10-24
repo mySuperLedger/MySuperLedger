@@ -17,8 +17,10 @@ limitations under the License.
 
 #include "should_be_generated/domain/commands/ConfigureAccountMetadataCommand.h"
 #include "should_be_generated/domain/commands/CreateAccountCommand.h"
+#include "should_be_generated/domain/commands/RecordJournalEntryCommand.h"
 #include "should_be_generated/domain/events/AccountCreatedEvent.h"
 #include "should_be_generated/domain/events/AccountMetadataConfiguredEvent.h"
+#include "should_be_generated/domain/events/JournalEntryRecordedEvent.h"
 #include "../app_util/AppStateMachine.h"
 
 namespace gringofts {
@@ -31,9 +33,6 @@ class AppStateMachine : public gringofts::app::AppStateMachine {
 
   ProcessHint processCommandAndApply(const Command &command, std::vector<std::shared_ptr<Event>> *events) override;
 
-  virtual void setValue(uint64_t value) = 0;
-  virtual uint64_t getValue() const = 0;
-
  protected:
   virtual ProcessHint process(const CreateAccountCommand &command,
                               std::vector<std::shared_ptr<Event>> *events) const = 0;
@@ -44,6 +43,11 @@ class AppStateMachine : public gringofts::app::AppStateMachine {
                               std::vector<std::shared_ptr<Event>> *events) const = 0;
 
   virtual StateMachine &apply(const AccountMetadataConfiguredEvent &event) = 0;
+
+  virtual ProcessHint process(const RecordJournalEntryCommand &command,
+                              std::vector<std::shared_ptr<Event>> *events) const = 0;
+
+  virtual StateMachine &apply(const JournalEntryRecordedEvent &event) = 0;
 };
 
 }  /// namespace ledger

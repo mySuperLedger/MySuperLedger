@@ -6,10 +6,11 @@ package gringofts.ledger.protos;
 service LedgerService {
   rpc ConfigureAccountMetadata (ConfigureAccountMetadata.Request) returns (ConfigureAccountMetadata.Response) {}
   rpc CreateAccount (CreateAccount.Request) returns (CreateAccount.Response) {}
+  rpc RecordJournalEntry (RecordJournalEntry.Request) returns (RecordJournalEntry.Response) {}
 }
 
 enum AccountType {
-  Unknown = 0;
+  UnknownAccountType = 0;
   Asset = 1;
   Liability = 2;
   Capital = 3;
@@ -29,7 +30,7 @@ message Account {
   uint64 nominal_code = 3;  // since v1
   string name = 4;  // since v1
   string desc = 5;  // since v1
-  uint64 currency_code = 6;  // since v1
+  uint64 iso4217_currency_code = 6;  // since v1
   Balance balance = 7;  // since v1
 }
 
@@ -38,6 +39,45 @@ message AccountMetadata {
   AccountType type = 2;  // since v1
   uint64 low_inclusive = 3;  // since v1
   uint64 high_inclusive = 4;  // since v1
+}
+
+/// Amount/Balance relationship:
+///   Balance +/- Amount = Balance
+///   Balance - Balance = Amount
+///   Amount +/- Amount = Amount
+///   Balance + Balance = Undefined
+message Amount {
+  uint64 version = 1;  // since v1
+  uint64 value = 2;  // since v1
+}
+
+enum TransactionType {
+  UnknownTransactionType = 0;
+  Debit = 1;
+  Credit = 2;
+}
+
+/// organization
+/// Journal
+///   - JournalEntry
+///       - JournalLine
+///       - JournalLine
+message JournalLine {
+  uint64 version = 1;  // since v1
+  uint64 nominal_code = 2;  // since v1
+  TransactionType transaction_type = 3;  // since v1
+  Amount amount = 4;  // since v1
+  uint64 iso4217_currency_code = 5;  // since v1
+  string ref_data = 6;  // since v1
+}
+
+message JournalEntry {
+  uint64 version = 1;  // since v1
+  string id = 2;  // since v1
+  uint64 valid_time = 3;  // since v1
+  uint64 record_time = 4;  // since v1
+  repeated JournalLine journal_lines = 5;  // since v1
+  string purpose = 6;  // since v1
 }
 
 message ConfigureAccountMetadata {
@@ -71,5 +111,22 @@ message CreateAccount {
   message CreatedEvent {
     uint64 version = 1;
     Account account = 2;
+  }
+}
+
+message RecordJournalEntry {
+  message Request {
+    JournalEntry journal_entry = 1;
+  }
+
+  message Response {
+    uint32 code = 1;
+    string message = 2;
+    string reserved = 3; // leaderHint if the persistence is backed by Raft
+  }
+
+  message RecordedEvent {
+    uint64 version = 1;
+    JournalEntry journal_entry = 2;
   }
 }

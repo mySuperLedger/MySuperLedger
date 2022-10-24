@@ -209,7 +209,7 @@ void App::startBenchmark() {
         request.mutable_account()->set_nominal_code(1000);
         request.mutable_account()->set_name("creditCard");
         request.mutable_account()->set_desc("Shanghai credit card");
-        request.mutable_account()->set_currency_code(156);  // CNY
+        request.mutable_account()->set_iso4217_currency_code(156);  // CNY
         request.mutable_account()->mutable_balance()->set_version(1);
         request.mutable_account()->mutable_balance()->set_value(100);
         auto createdTimeInNanos = TimeUtil::currentTimeInNanos();

@@ -35,12 +35,6 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
 
   ~RocksDBBackedAppStateMachine() override { closeRocksDB(&mRocksDB); }
 
-  /**
-   * implement getter() and setter()
-   */
-  uint64_t getValue() const override;
-  void setValue(uint64_t value) override;
-
   /// integration part
   void swapState(StateMachine *anotherStateMachine) override { assert(0); }
 
@@ -62,6 +56,8 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   /// callbacks
   void onAccountInserted(const Account &account) override;
   void onAccountMetadataUpdated(const AccountMetadata &accountMetadata) override;
+  void onBookkeepingProcessed(std::string dedupId, uint64_t validTime) override;
+  void onAccountUpdated(const Account &account) override;
 
  private:
   friend class MemoryBackedAppStateMachine;

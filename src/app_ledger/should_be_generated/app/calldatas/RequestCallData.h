@@ -91,9 +91,11 @@ struct CallData : public CallDataBase {
 };
 
 using ConfigureAccountMetadataCallData = CallData<protos::ConfigureAccountMetadata::Request,
-                                       protos::ConfigureAccountMetadata::Response>;
+                                                  protos::ConfigureAccountMetadata::Response>;
 using CreateAccountCallData = CallData<protos::CreateAccount::Request,
                                        protos::CreateAccount::Response>;
+using RecordJournalEntryCallData = CallData<protos::RecordJournalEntry::Request,
+                                            protos::RecordJournalEntry::Response>;
 
 //////////////////////////// CallData ////////////////////////////
 
@@ -102,5 +104,6 @@ using CreateAccountCallData = CallData<protos::CreateAccount::Request,
 
 #include "ConfigureAccountMetadataCallData.cpp"
 #include "CreateAccountCallData.cpp"
+#include "RecordJournalEntryCallData.cpp"
 
 #endif  // SRC_APP_LEDGER_SHOULD_BE_GENERATED_APP_CALLDATAS_REQUESTCALLDATA_H_
