@@ -116,13 +116,20 @@ ProcessHint AppStateMachine::process(const RecordJournalEntryCommand &command,
   const auto &journalEntryOpt = command.journalEntryOpt();
   assert(journalEntryOpt);  // request needs to pass the validation before it can be processed here
   const auto &journalEntry = *journalEntryOpt;
-  if (mDoneMap.find(journalEntry.id()) != mDoneMap.end()) {
+  const auto &entryId = journalEntry.id();
+  if (mDoneMap.find(entryId) != mDoneMap.end()) {
     hint.mCode = BusinessCode::JOURNAL_ENTRY_ALREADY_PROCESSED;
     hint.mMessage = "journal entry has already been processed";
     return hint;
   } else {
-    /// TODO(ISSUE-21): do not load all dedup ids when becoming new leader,
-    /// and read dedup id from rocksdb snapshot instead in CPL
+    /// see if it is persisted in rocksdb
+    std::string value;
+    auto status = mRocksDB->Get(mReadOptions, mColumnFamilyHandles[RocksDBConf::DONE_MAP], entryId, &value);
+    if (!status.IsNotFound()) {
+      hint.mCode = BusinessCode::JOURNAL_ENTRY_ALREADY_PROCESSED;
+      hint.mMessage = "journal entry has already been processed";
+      return hint;
+    }
   }
   /// TODO(ISSUE-22): add multi-currency support, for now, will only consider same currency
   const auto &journalLines = journalEntry.journalLines();

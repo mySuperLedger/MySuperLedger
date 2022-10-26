@@ -15,9 +15,6 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
 #define SRC_APP_LEDGER_V2_ROCKSDBBACKEDAPPSTATEMACHINE_H_
 
-#include <rocksdb/db.h>
-#include <rocksdb/options.h>
-
 #include "AppStateMachine.h"
 
 namespace gringofts {
@@ -77,10 +74,6 @@ class RocksDBBackedAppStateMachine : public v2::AppStateMachine {
   /// the max num of bundles batched in write batch
   const uint64_t mMaxBatchSize = 500;
 
-  /// column family handles
-  std::vector<rocksdb::ColumnFamilyHandle *> mColumnFamilyHandles;
-
-  std::shared_ptr<rocksdb::DB> mRocksDB;
   rocksdb::WriteBatch mWriteBatch;
 
   /// latest index that have been flushed to RocksDB
