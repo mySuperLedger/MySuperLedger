@@ -172,19 +172,7 @@ void RocksDBBackedAppStateMachine::loadFromRocksDB() {
   assert(accountMetadataIter->status().ok());
   delete accountMetadataIter;
 
-  /// load DoneMap
-  rocksdb::Iterator *doneMapIter = mRocksDB->NewIterator(rocksdb::ReadOptions(),
-                                                         mColumnFamilyHandles[RocksDBConf::DONE_MAP]);
-  for (doneMapIter->SeekToFirst(); doneMapIter->Valid(); doneMapIter->Next()) {
-    const auto &key = doneMapIter->key();
-    const auto &val = doneMapIter->value();
-    auto dedupId = key.ToString();
-    assert(mDoneMap.find(dedupId) == mDoneMap.end());
-    auto validTime = std::stoull(val.ToString());
-    mDoneMap[dedupId] = validTime;
-  }
-  assert(doneMapIter->status().ok());
-  delete doneMapIter;
+  /// do not load doneMap as it may become too large and cost more time
 }
 
 void RocksDBBackedAppStateMachine::onAccountMetadataUpdated(const AccountMetadata &accountMetadata) {

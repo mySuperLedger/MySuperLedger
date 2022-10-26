@@ -39,8 +39,15 @@ class MemoryBackedAppStateMachine : public v2::AppStateMachine {
     std::swap(mCoA, another.mCoA);
     std::swap(mAccountMetadata, another.mAccountMetadata);
 
+    /// refresh ptr of RocksDB if needed.
+    mRocksDB = another.mRocksDB;
+
+    /// refresh column family handles if needed
+    mColumnFamilyHandles = another.mColumnFamilyHandles;
     /// explicitly trigger a flush in RocksDB
     another.flushToRocksDB();
+    /// take a snapshot
+    mReadOptions.snapshot = mRocksDB->GetSnapshot();
   }
 };
 

@@ -15,6 +15,9 @@ limitations under the License.
 #ifndef SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_
 #define SRC_APP_LEDGER_V2_APPSTATEMACHINE_H_
 
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
+
 #include "../AppStateMachine.h"
 
 namespace gringofts {
@@ -59,11 +62,7 @@ class AppStateMachine : public ledger::AppStateMachine {
   /// unit test
   bool hasSameState(const StateMachine &anotherStateMachine) const override {
     const auto &another = dynamic_cast<const v2::AppStateMachine &>(anotherStateMachine);
-    /// compare doneMap
-    if (mDoneMap.size() != another.mDoneMap.size()) {
-      SPDLOG_WARN("DoneMap has different size. {} vs {}", mDoneMap.size(), another.mDoneMap.size());
-      return false;
-    }
+    /// do not compare doneMap as it will be lazy-loaded
     /// compare CoA
     if (mCoA.size() != another.mCoA.size()) {
       SPDLOG_WARN("CoA has different size. {} vs {}", mCoA.size(), another.mCoA.size());
@@ -116,6 +115,12 @@ class AppStateMachine : public ledger::AppStateMachine {
   virtual void onAccountUpdated(const Account &account) {}
 
  protected:
+  /// read-only rocksDB
+  std::shared_ptr<rocksdb::DB> mRocksDB;
+  /// column family handles
+  std::vector<rocksdb::ColumnFamilyHandle *> mColumnFamilyHandles;
+  /// ReadOptions hold a snapshot
+  rocksdb::ReadOptions mReadOptions;
   /// state owned by both Memory-backed SM and RocksDB-backed SM
   /// key: dedupId, value: validTime
   /// TODO(ISSUE-20): only keep dedupIds no older than 6 months to make the rocksdb size consistent
