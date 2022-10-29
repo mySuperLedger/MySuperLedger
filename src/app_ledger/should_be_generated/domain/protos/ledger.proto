@@ -19,9 +19,21 @@ enum AccountType {
   Expense = 6;
 }
 
+/// Amount/Balance relationship:
+///   Balance +/- Amount = Balance
+///   Balance - Balance = Amount
+///   Amount +/- Amount = Amount
+///   Balance + Balance = Undefined
+message Amount {
+  uint64 version = 1;  // since v1
+  uint64 value = 2 [deprecated = true];  // since v1, deprecated in v2
+  string value_v2 = 3;  // since v2
+}
+
 message Balance {
   uint64 version = 1;  // since v1
-  uint64 value = 2;  // since v1
+  uint64 value = 2 [deprecated = true];  // since v1, deprecated in v2
+  string value_v2 = 3;  // since v2
 }
 
 message Account {
@@ -39,16 +51,6 @@ message AccountMetadata {
   AccountType type = 2;  // since v1
   uint64 low_inclusive = 3;  // since v1
   uint64 high_inclusive = 4;  // since v1
-}
-
-/// Amount/Balance relationship:
-///   Balance +/- Amount = Balance
-///   Balance - Balance = Amount
-///   Amount +/- Amount = Amount
-///   Balance + Balance = Undefined
-message Amount {
-  uint64 version = 1;  // since v1
-  uint64 value = 2;  // since v1
 }
 
 enum TransactionType {
