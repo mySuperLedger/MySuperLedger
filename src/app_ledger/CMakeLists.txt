@@ -11,7 +11,7 @@ set(proto_generated_dir "generated/grpc")
 file(MAKE_DIRECTORY ${proto_generated_dir})
 
 set(proto_file_list
-        should_be_generated/domain/protos/ledger.proto)
+        should_be_generated/domain/interfaces/protobuf_v3/ledger.proto)
 
 ADD_PROTO_SET(ledger_proto_library "${proto_file_list}" ${proto_generated_dir})
 

@@ -16,3 +16,9 @@
 [submodule "third_party/prometheus-cpp"]
 	path = third_party/prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "src/app_ledger/src/app_ledger/should_be_generated/domain/interfaces"]
+	path = src/app_ledger/src/app_ledger/should_be_generated/domain/interfaces
+	url = https://github.com/mySuperLedger/MySuperLedgerInterfaces.git
+[submodule "src/app_ledger/should_be_generated/domain/interfaces"]
+	path = src/app_ledger/should_be_generated/domain/interfaces
+	url = https://github.com/mySuperLedger/MySuperLedgerInterfaces.git
